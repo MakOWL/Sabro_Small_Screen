@@ -11,11 +11,10 @@ void back_event_handler(lv_event_t *e) {
     lv_obj_add_flag(menu_data, LV_OBJ_FLAG_HIDDEN);
   }
 }
-//(lv_obj_t *)lv_event_get_user_data(e);
+
 // Menu item event handler
-void menu_item_event_handler(lv_event_t *e) {
+void menu_item_event_handler(lv_event_t *e){
     lv_obj_t *obj = lv_event_get_target(e);
-    // lv_obj_t *menu = (lv_obj_t *)lv_event_get_user_data(e);
     const char *item_text = lv_label_get_text(lv_obj_get_child(obj, 0));
     
     // Navigate to the appropriate screen based on the clicked item
@@ -28,6 +27,9 @@ void menu_item_event_handler(lv_event_t *e) {
     }  else if (strcmp(item_text, "Timer Screen") == 0) {
         create_timer_screen();
         lv_scr_load(timer_screen); // Navigate to timer Screen
+    }  else if (strcmp(item_text, "Additional Modes Screen") == 0) {
+        create_additional_modes_screen();
+        lv_scr_load(add_mod_screen); // Navigate to timer Screen
     }
     
     // Hide the menu after navigation
@@ -67,6 +69,12 @@ void side_menu(void) {
         cont = lv_menu_cont_create(main_page);
         label = lv_label_create(cont);
         lv_label_set_text(label, "Timer Screen");
+         lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
+
+        cont = lv_menu_cont_create(main_page);
+        label = lv_label_create(cont);
+        lv_label_set_text(label, "Additional Modes Screen");
          lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
 
