@@ -12,8 +12,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
   Serial.print("Coil Sensor:");
   Serial.println(data.coil_sensor); 
   update_main_screen(data);
-  //update_data_screen(data);
-  //data_received = true; 
+  update_data_screen(data);
 }
 
 void esp_now_setup(){

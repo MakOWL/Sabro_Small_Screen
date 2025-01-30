@@ -214,7 +214,7 @@ void create_main_screen() {
 
 
     date_time_label = lv_label_create(main_screen);
-    lv_obj_set_pos(date_time_label, 75, 10);
+    lv_obj_set_pos(date_time_label, 65, 10);
     lv_obj_set_size(date_time_label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_text(date_time_label, "10 Oct 2024, 6:30 pm");
     lv_obj_set_style_text_font(date_time_label, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);

@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "images.h"
 #include "fonts.h"
+#include "com_structs.h"
 
 lv_obj_t *data_screen;
 lv_obj_t *comp_data;
@@ -12,12 +13,12 @@ lv_obj_t *outdoor_data;
 lv_obj_t *defrost_data;
 lv_obj_t *refrig_data;
 
+lv_obj_t *comp_data_label;
+
 lv_obj_t *left_btn;
 lv_obj_t *right_btn;
 
 int current_panel_index = 0;
-
-
 
 void left_right_btn_even(lv_event_t *e){
    lv_obj_t *btn = lv_event_get_target(e);  // Get the button that was clicked
@@ -126,15 +127,15 @@ void create_data_screen() {
                 }
                 {
                     // data_compressor_rpm
-                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    comp_data_label = lv_label_create(parent_obj);
                     //objects.data_compressor_rpm = obj;
-                    lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_label_set_text(obj, "4500");
-                    lv_obj_set_style_text_color(obj, lv_color_hex(0xfffafafa), LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_font(obj, &ui_font_seven_segment_48, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_pos(comp_data_label, 0, 0);
+                    lv_obj_set_size(comp_data_label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_label_set_text(comp_data_label, "4500");
+                    lv_obj_set_style_text_color(comp_data_label, lv_color_hex(0xfffafafa), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(comp_data_label, &ui_font_seven_segment_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_opa(comp_data_label, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(comp_data_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // data_compressor_running_mode
@@ -542,6 +543,7 @@ void create_data_screen() {
                 }
             }
         }
+    //update_data_screen(data);
 }
 
 

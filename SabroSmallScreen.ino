@@ -79,6 +79,7 @@ void setup()
    
     esp_now_setup();
     create_main_screen();
+    create_data_screen();
 }
 
 

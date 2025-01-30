@@ -24,8 +24,8 @@ void update_main_screen(realTime_data data){
       mode_index = 3;  
     }
     if (R1 == 0 && R2 == 0 && R3 == 0) {
-      lv_obj_set_style_img_recolor(img_auto_obj, auto_color, LV_PART_MAIN);
-      mode_index = 0;
+      lv_obj_set_style_img_recolor(img_cool_obj, cool_color, LV_PART_MAIN);
+      mode_index = 1;
     }
     if (R1 == 0 && R2 == 1 && R3 == 0) {
       lv_obj_set_style_img_recolor(img_heat_obj, heat_color, LV_PART_MAIN);
@@ -51,7 +51,10 @@ void update_main_screen(realTime_data data){
    lv_arc_set_value(temp_dial, data.temp);
 }
 
-void update_data_screen(realTime_data data){
-
-
+void update_data_screen(realTime_data data) {
+  lv_obj_t *rpm_lbl = lv_obj_get_child(comp_data, 2);
+if (rpm_lbl != NULL) {
+    
+    lv_label_set_text_fmt(rpm_lbl, "%u", data.compressor_rpm);
+}
 }
