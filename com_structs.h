@@ -11,14 +11,14 @@ enum {
 };
 
 typedef struct realTime_data{
-  int32_t warning_code;
+  uint8_t warning_code;
 
   uint8_t rtc_sec;
   uint8_t rtc_min;
   uint8_t rtc_hour;
   uint8_t rtc_day;
   uint8_t rtc_month;
-  uint32_t rtc_year;
+  uint16_t rtc_year;
 
   uint8_t ble_byte_1;
   uint8_t ble_byte_2;
@@ -43,10 +43,16 @@ typedef struct realTime_data{
   float fan_current;
   float compressor_current;
   uint16_t compressor_rpm;
-  uint8_t in_error;
-  uint8_t out_error;
-  uint32_t timer_on_sec;
-  uint32_t timer_of_sec;
+  uint8_t inv_error;
+  uint8_t inv_error_code;
+  uint32_t ton_sec;
+  uint32_t tof_sec;
+
+  float hour_energy;
+  float day_off_peak_energy;
+  float day_peak_energy;
+  float month_off_peak_energy;
+  float month_peak_energy;
 } realTime_data;
 
 //extern bool data_received = false;

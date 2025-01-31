@@ -6,11 +6,6 @@
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
   memcpy(&data, incomingData, sizeof(data));
   Serial.println("Data Recieved");
-
-  Serial.print("Temperatur:");
-  Serial.println(data.temp);
-  Serial.print("Coil Sensor:");
-  Serial.println(data.coil_sensor); 
   update_main_screen(data);
   update_data_screen(data);
 }
