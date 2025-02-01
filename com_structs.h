@@ -5,10 +5,14 @@
 #include <WiFi.h>
 
 enum {
-  PAIRED_DEVICE_NAME_CHAR_COUNT = 20,
-  SMALL_SCREEN_AUTHENTICATOR = 1184005014U,
+  PAIRED_DEVICE_NAME_CHARACTER_COUNT = 20,
+  PAIRED_DEVICE_SABRO_REMOTE_AUTHENTICATOR = 1184005015U,
+  PAIRED_DEVICE_SABRO_AC_AUTHENTICATOR = 1184005016U,
+  SMALL_SCREEN_AUTHENTICATOR = 1184005014U;
+  MAXIMUM_AVAILABLE_DEVICES_COUNT = 10,
   MAC_ADDRESS_ARRAY_SIZE = 6
 };
+
 
 typedef struct realTime_data{
   uint8_t warning_code;
@@ -54,6 +58,43 @@ typedef struct realTime_data{
   float month_off_peak_energy;
   float month_peak_energy;
 } realTime_data;
+
+typedef struct pairing_data {
+  char device_name[PAIRED_DEVICE_NAME_CHAR_COUNT];
+  uint32_t authenticator;
+} pairing_data_t;
+
+enum { SEND_STRUCT_DATE_AND_TIME = 1, SEND_STRUCT_PAIRING_CONFIRMATION = 2 };
+
+typedef struct pairing_confirmation_data {
+  uint8_t target_structure;
+  uint8_t is_paired;
+  uint32_t authenticator;
+} pairing_confirmation_data_t;
+
+typedef struct requests_or_acknowledgement {
+  uint8_t message_type;
+  uint8_t message_data;
+}requests_or_acknowledgement_t;
+
+enum {
+  ESPNOW_NO_REQUEST_OR_ACKNOWLEDGEMENT = 0,
+  ESPNOW_MESSAGE_TYPE_REQUEST = 1,
+  ESPNOW_MESSAGE_TYPE_ACKNOWLEDGEMENT = 2,
+  ESPNOW_REQUEST_MASTER_DEVICE_NAME = 1,
+};
+
+extern uint8_t available_connections;
+extern uint8_t available_connections_macs[MAXIMUM_AVAILABLE_DEVICES_COUNT]
+                                         [MAC_ADDRESS_ARRAY_SIZE];
+extern uint8_t paired_mac[MAC_ADDRESS_ARRAY_SIZE];
+extern char paired_device_name[PAIRED_DEVICE_NAME_CHARACTER_COUNT];
+extern uint8_t incoming_mac[MAC_ADDRESS_ARRAY_SIZE];
+extern pairing_data_t incoming_pairing_data;
+extern esp_now_peer_info_t peer_info;
+
+extern bool is_paired;
+extern bool is_pairing;
 
 //extern bool data_received = false;
 extern realTime_data data;
