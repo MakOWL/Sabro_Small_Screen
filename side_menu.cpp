@@ -30,7 +30,10 @@ void menu_item_event_handler(lv_event_t *e){
     }  else if (strcmp(item_text, "Additional Modes Screen") == 0) {
         create_additional_modes_screen();
         lv_scr_load(add_mod_screen); // Navigate to timer Screen
-    }
+    } else if (strcmp(item_text, "Settings") == 0) {
+        create_setting_screen();
+        lv_scr_load(setting_screen); // Navigate to timer Screen
+        }
     
     // Hide the menu after navigation
     lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
@@ -75,6 +78,12 @@ void side_menu(void) {
         cont = lv_menu_cont_create(main_page);
         label = lv_label_create(cont);
         lv_label_set_text(label, "Additional Modes Screen");
+         lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
+
+        cont = lv_menu_cont_create(main_page);
+        label = lv_label_create(cont);
+        lv_label_set_text(label, "Settings");
          lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
 
