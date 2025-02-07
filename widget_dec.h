@@ -43,6 +43,9 @@ extern lv_obj_t *comp_data_label;
 extern lv_obj_t *avail_devices_screen;
 extern lv_obj_t *device_list;
 extern lv_obj_t *device_list_buttons[MAXIMUM_AVAILABLE_DEVICES_COUNT];
+extern lv_obj_t *paired_device_lbl;
+extern lv_obj_t *unpair_btn;
+extern lv_obj_t *pair_new_device_btn;
 
 // creating screens
 void create_main_screen();

@@ -3,6 +3,9 @@
 
 #include <esp_now.h>
 #include <WiFi.h>
+#include <lvgl.h>
+
+ #define MAX_DATA_SIZE 250
 
 enum {
   PAIRED_DEVICE_NAME_CHARACTER_COUNT = 20,
@@ -152,12 +155,21 @@ extern uint8_t pairing_mac[MAC_ADDRESS_ARRAY_SIZE];
 extern uint8_t pairing_stage;
 extern uint16_t unpairing_request_send_time;
 
-//extern bool data_received = false;
+
 extern realTime_data data;
 void esp_now_setup();
 void update_main_screen(realTime_data data);
 void update_data_screen(realTime_data data);
 void update_setting_screen();
 void send_pair_reguest();
+void unpair_device_action();
+void force_unpair_close(lv_event_t *e);
+void force_unpair(lv_event_t *e);
+void force_pair_action(lv_event_t *e);
+void force_pair_close_button_action(lv_event_t *e);
+
+// for serial printing
+extern uint8_t last_sent_data[MAX_DATA_SIZE];
+extern size_t last_sent_data_length;
 
 #endif

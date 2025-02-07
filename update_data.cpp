@@ -1,6 +1,7 @@
 #include "com_structs.h"
 #include "widget_dec.h"
 #include "image_colours.h"
+#include "eprom_utils.h"
 
 
 enum half_of_day {SECOND_HALF_OF_DAY = 1, HOURS_PER_HALF = 12};
@@ -9,6 +10,12 @@ static const char *month_names[12] = { "Jan", "Feb", "Mar", "Apr",
                                      "Sep", "Oct", "Nov", "Dec" };
 
  static uint32_t last_broadcast_time = 0;
+
+ #define MAX_DATA_SIZE 250  // Adjust based on the max size of your messages
+
+uint8_t last_sent_data[MAX_DATA_SIZE];
+size_t last_sent_data_length = 0;
+
 
 void update_main_screen(realTime_data data){
   uint8_t R1 = bitRead(data.ble_byte_2, 7);
@@ -39,7 +46,9 @@ void update_main_screen(realTime_data data){
       lv_obj_set_style_img_recolor(img_auto_obj, auto_color, LV_PART_MAIN);
       mode_index = 0;
     }
-  
+   if(data.rtc_month > 12 || data.rtc_month < 0 ){
+    data.rtc_month = 0;
+   }
    lv_label_set_text(mode_label, modes[mode_index]); 
    lv_label_set_text_fmt(temp_label,"%.f",data.temp); 
    lv_label_set_text_fmt(date_time_label, "%.2d : %.2d %s - %.2d %s, %.4d",
@@ -141,27 +150,32 @@ void update_data_screen(realTime_data data) {
 void update_setting_screen() {
   static uint32_t last_broadcast_time = 0;
   bool mac_already_exist = false;
+
+  
   if (setting_screen == NULL)
     return;// if the screen is null then dont crash 
-  
-static const uint8_t empty_mac[MAC_ADDRESS_ARRAY_SIZE] = {0, 0, 0,
-                                                                0, 0, 0};
-      if (memcmp(incoming_mac, empty_mac,
-                 sizeof(uint8_t) * MAC_ADDRESS_ARRAY_SIZE) != 0) {
-        for (uint32_t i = 0; i < available_connections; i++) {
-          if (memcmp(&available_connections_macs[i][0], incoming_mac,
-                     sizeof(uint8_t) * MAC_ADDRESS_ARRAY_SIZE) == 0) {
-            mac_already_exist = true;
-            break;
-          }
-        }
-                 }
-  pairing_request_t send_request = {
-          ESPNOW_MESSAGE_TYPE_PAIRING_AVAILABILITY_REQUEST,
-          ESPNOW_MESSAGE_DATA_SABRO_SCREEN_AUTHENTICATOR};
-      esp_now_send(broadcast_mac, (uint8_t *)&send_request,
-                   sizeof(send_request));
+
+  if (pairing_stage == ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY &&
+    ((millis() - last_broadcast_time) > ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY_BROADCAST_TIMEOUT)){
+
+        memset(available_connections_macs, 0, sizeof(available_connections_macs));
+        memset(incoming_mac, 0, sizeof(incoming_mac));
+
+  for (uint8_t i = 0; i < available_connections; i++)
+      lv_obj_add_flag(device_list_buttons[i], LV_OBJ_FLAG_HIDDEN);
+      available_connections = 0;
+      pairing_request_t send_request = {ESPNOW_MESSAGE_TYPE_PAIRING_AVAILABILITY_REQUEST,ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR};
+      esp_now_send(broadcast_mac, (uint8_t *)&send_request,sizeof(send_request));
+      Serial.println("Message type 2 sent");
       last_broadcast_time = millis();
+    }   
+
+  for (uint8_t i = 0; i < available_connections; i++) {
+    if (memcmp(available_connections_macs[i], incoming_mac, MAC_ADDRESS_ARRAY_SIZE) == 0) {
+      mac_already_exist = true;
+      break;
+    }
+  }
 
     
  if (!mac_already_exist && strlen(incoming_pairing_data.device_name) > 0) {
@@ -174,5 +188,148 @@ static const uint8_t empty_mac[MAC_ADDRESS_ARRAY_SIZE] = {0, 0, 0,
 
     available_connections++;
 }
+if (pairing_stage == ESPNOW_PAIRING_STAGE_SCREEN_REQUESTED_UNPAIRING &&
+        (millis() - unpairing_request_send_time) >= ESPNOW_PAIRING_STAGE_UNPAIRING_REQUESTED_TIMEOUT)
+      {
+        lv_obj_t * unpairing_confirmation_message_box =
+          lv_msgbox_create(NULL,  "Unpairing Confirmation","Are you sure", NULL, false);
+        lv_obj_align(unpairing_confirmation_message_box, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_size(unpairing_confirmation_message_box, LV_PCT(60), LV_PCT(50));
+        lv_obj_set_style_text_font(lv_msgbox_get_title(unpairing_confirmation_message_box), &lv_font_montserrat_18, LV_PART_MAIN);
+
+        // force_unpair_confirm_button
+        lv_obj_t *force_unpair_confirm_button =
+            lv_btn_create(unpairing_confirmation_message_box);
+        lv_obj_set_size(force_unpair_confirm_button, LV_SIZE_CONTENT, 35);
+        lv_obj_set_style_bg_color(force_unpair_confirm_button,
+                                  lv_color_hex(0xff1960ec),
+                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_align(force_unpair_confirm_button, LV_ALIGN_TOP_MID, 0, 0);
+        lv_obj_add_event_cb(force_unpair_confirm_button,force_unpair, LV_EVENT_CLICKED, (void *) 0);
+
+        // force_unpair_confirm_label
+        lv_obj_t *force_unpair_confirm_label =
+            lv_label_create(force_unpair_confirm_button);
+        lv_obj_set_size(force_unpair_confirm_label, LV_SIZE_CONTENT,
+                        LV_SIZE_CONTENT);
+        lv_label_set_text(force_unpair_confirm_label, "Force Unpair");
+
+        // force_unpair_close_button
+        lv_obj_t *force_unpair_close_button =
+            lv_btn_create(unpairing_confirmation_message_box);
+        lv_obj_set_size(force_unpair_close_button, LV_SIZE_CONTENT, 35);
+        lv_obj_set_style_bg_color(force_unpair_close_button,
+                                  lv_color_hex(0xff1960ec),
+                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_align(force_unpair_close_button, LV_ALIGN_TOP_MID, 0, 0);
+        lv_obj_add_event_cb(force_unpair_close_button, force_unpair_close, LV_EVENT_CLICKED, (void *) 0);
+
+        // force_unpair_close_label
+        lv_obj_t *force_unpair_close_label =
+            lv_label_create(force_unpair_close_button);
+        lv_obj_set_size(force_unpair_close_label, LV_SIZE_CONTENT,
+                        LV_SIZE_CONTENT);
+        lv_label_set_text(force_unpair_close_label, "Close");
+
+        pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+    }
+if (!is_paired &&
+      pairing_stage == ESPNOW_PAIRING_STAGE_PAIRING_REQUEST_ACKNOWLEDGED) {
+    if (is_paired)
+      if (esp_now_del_peer(paired_mac) == ESP_OK)
+        is_paired = false;
+
+    if (!is_paired) {
+      memcpy(paired_mac, pairing_mac, sizeof(paired_mac));
+      // Register peer
+      memcpy(peer_info.peer_addr, pairing_mac, MAC_ADDRESS_ARRAY_SIZE);
+      peer_info.channel = 0;
+      peer_info.encrypt = false;
+
+      // Add peer
+      if (esp_now_add_peer(&peer_info) != ESP_OK) {
+        Serial.println("Failed to add peer");
+        return;
+    }
+
+      
+      is_paired = true;
+      eeprom_add_mac_address();
+
+      pairing_stage = ESPNOW_PAIRING_STAGE_IS_PAIRED;
+      pairing_request_t send_confirmation = {
+          ESPNOW_MESSAGE_TYPE_SCREEN_PAIRING_SUCCESS,
+          ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR};
+
+      memcpy(last_sent_data, (uint8_t *)&send_confirmation, sizeof(send_confirmation));
+      last_sent_data_length = sizeof(send_confirmation);
+
+      esp_now_send(paired_mac, (uint8_t *)&send_confirmation,
+                   sizeof(send_confirmation));
+      Serial.println("Message 5 has been sent");
+      delay(200);
+      lv_obj_add_flag(avail_devices_screen,LV_OBJ_FLAG_HIDDEN);
+      //screen should hide here 
+       
+      uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
+      memcpy(last_sent_data, &send_request, sizeof(send_request));
+      last_sent_data_length = sizeof(send_request);
+      esp_now_send(paired_mac, (uint8_t *)&send_request, sizeof(send_request));
+
+      pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+}
+if (is_paired &&
+      pairing_stage ==ESPNOW_PAIRING_STAGE_PAIR_ACKNOWLEDGEMENT_REQUEST_RECIEVED) {
+    uint8_t send_confirmation = ESPNOW_MESSAGE_TYPE_SCREEN_STILL_IS_PAIRED_CONFIRMATION;
+    esp_now_send(paired_mac, (uint8_t *)&send_confirmation,sizeof(send_confirmation));
+
+    pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+  }
+
+ }
+  if (!is_paired &&
+      pairing_stage == ESPNOW_PAIRING_STAGE_FORCE_PAIRING_REQUEST_RECIEVED_FROM_AC) {
+        lv_obj_t * force_pairing_confirmation_message_box =
+          lv_msgbox_create(NULL,  "Force Pairing Confirmation", "Are you sure", NULL, false);
+        lv_obj_align(force_pairing_confirmation_message_box, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_size(force_pairing_confirmation_message_box, LV_PCT(60), LV_PCT(50));
+        lv_obj_set_style_text_font(lv_msgbox_get_title(force_pairing_confirmation_message_box), &lv_font_montserrat_18, LV_PART_MAIN);
+
+        // force_pair_confirm_button
+        lv_obj_t *force_pair_confirm_button =
+            lv_btn_create(force_pairing_confirmation_message_box);
+        lv_obj_set_size(force_pair_confirm_button, LV_SIZE_CONTENT, 35);
+        lv_obj_set_style_bg_color(force_pair_confirm_button,
+                                  lv_color_hex(0xff1960ec),
+                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_align(force_pair_confirm_button, LV_ALIGN_TOP_MID, 0, 0);
+        lv_obj_add_event_cb(force_pair_confirm_button, force_pair_action, LV_EVENT_CLICKED, (void *) 0);
+
+        // force_unpair_confirm_label
+        lv_obj_t *force_pair_confirm_label =
+            lv_label_create(force_pair_confirm_button);
+        lv_obj_set_size(force_pair_confirm_label, LV_SIZE_CONTENT,
+                        LV_SIZE_CONTENT);
+        lv_label_set_text(force_pair_confirm_label, "Force pair");
+
+        // force_unpair_close_button
+        lv_obj_t *force_pair_close_button =
+            lv_btn_create(force_pairing_confirmation_message_box);
+        lv_obj_set_size(force_pair_close_button, LV_SIZE_CONTENT, 35);
+        lv_obj_set_style_bg_color(force_pair_close_button,
+                                  lv_color_hex(0xff1960ec),
+                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_align(force_pair_close_button, LV_ALIGN_TOP_MID, 0, 0);
+        lv_obj_add_event_cb(force_pair_close_button, force_pair_close_button_action, LV_EVENT_CLICKED, (void *) 0);
+
+        // force_unpair_close_label
+        lv_obj_t *force_pair_close_label =
+            lv_label_create(force_pair_close_button);
+        lv_obj_set_size(force_pair_close_label, LV_SIZE_CONTENT,
+                        LV_SIZE_CONTENT);
+        lv_label_set_text(force_pair_close_label, "Close");
+
+        pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+  }
 }
 

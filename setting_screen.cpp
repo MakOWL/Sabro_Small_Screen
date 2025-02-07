@@ -4,28 +4,95 @@
 #include "images.h"
 #include "fonts.h"
 #include "com_structs.h"
+#include "eprom_utils.h"
 
 lv_obj_t *setting_screen;
 lv_obj_t *avail_devices_screen;
 lv_obj_t *device_list;
 lv_obj_t *device_list_buttons[MAXIMUM_AVAILABLE_DEVICES_COUNT];
+lv_obj_t *paired_device_lbl;
+lv_obj_t *pair_new_device_btn;
+lv_obj_t *unpair_btn;
+uint16_t unpairing_request_send_time;
+
+void force_unpair_close(lv_event_t *e) {
+  if (lv_event_get_code(e) == LV_EVENT_CLICKED)
+    {
+      pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+      lv_obj_del(lv_obj_get_parent(lv_obj_get_parent(lv_event_get_target(e))));
+    }
+}
+
+void force_unpair(lv_event_t *e){
+  if(!is_paired){return;}
+   
+   if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
+    Serial.printf("Mac Address %x:%x:%x:%x:%x:%x",paired_mac[0],paired_mac[1],paired_mac[2],paired_mac[3],paired_mac[4],paired_mac[5]);
+    if (esp_now_del_peer(paired_mac) != ESP_OK) {
+       Serial.println("Failed to delete peer");
+      return;
+    }
+    is_paired = false;
+    pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+    eeprom_clear_mac_address();
+    lv_obj_add_flag(unpair_btn,LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(pair_new_device_btn,LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_text(paired_device_lbl,"No Device Connected!!!");
+    lv_obj_del(lv_obj_get_parent(lv_obj_get_parent(lv_event_get_target(e))));
+
+}
+}
+void force_pair_close_button_action(lv_event_t *e) {
+  if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
+    pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
+    lv_obj_del(lv_obj_get_parent(lv_obj_get_parent(lv_event_get_target(e))));
+  }
+}
+
+
+void unpair_device_action(lv_event_t *e){
+  // hadeling unpair 
+  if(!is_paired){return;}
+      uint8_t send_request = ESPNOW_MESSAGE_TYPE_SCREEN_UNPAIR_REQUEST;
+      esp_now_send(paired_mac, (uint8_t *) &send_request, sizeof(send_request));
+      Serial.print("Unpair Request sent");
+      pairing_stage = ESPNOW_PAIRING_STAGE_SCREEN_REQUESTED_UNPAIRING;
+      unpairing_request_send_time = millis();
+}
+
+void force_pair_action(lv_event_t *e) {
+  if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
+    pairing_request_t send_confirmation = {
+        ESPNOW_MESSAGE_TYPE_SCREEN_BREAK_OLD_PAIR_CONFIRMATION,
+        ESPNOW_MESSAGE_DATA_SABRO_SCREEN_AUTHENTICATOR};
+    esp_now_peer_info_t temp_peer;
+    temp_peer.channel = 0;
+    temp_peer.encrypt = false;
+    temp_peer.ifidx = WIFI_IF_STA;
+    memcpy(temp_peer.peer_addr, pairing_mac, sizeof(pairing_mac));
+    if (esp_now_add_peer(&temp_peer) == ESP_OK) {
+      esp_now_send(pairing_mac, (uint8_t *)&send_confirmation,
+                   sizeof(send_confirmation));
+
+      esp_now_del_peer(pairing_mac);
+    }
+
+    lv_obj_del(lv_obj_get_parent(lv_obj_get_parent(lv_event_get_target(e))));
+  }
+}
 
 void send_pair_request(lv_event_t *e){
-    lv_obj_t *btn = lv_event_get_target(e);  // Get the button clicked
-    uint32_t index = lv_obj_get_index(btn);  // Get the index of the button
+    lv_obj_t *btn = lv_event_get_target(e);  
+    uint32_t index = lv_obj_get_index(btn);  
     lv_obj_t *calling_button = lv_event_get_target(e);
 
-    // Get the MAC address for the clicked device (from available_connections_macs)
     if (index < available_connections) {
-        uint8_t *mac_address = available_connections_macs[index];  // Get the MAC address for this device
+        uint8_t *mac_address = available_connections_macs[index];  
 
-        // Convert MAC address to string
         char mac_str[18];
         snprintf(mac_str, sizeof(mac_str), "%02X:%02X:%02X:%02X:%02X:%02X",
                  mac_address[0], mac_address[1], mac_address[2],
                  mac_address[3], mac_address[4], mac_address[5]);
-
-        // Print the MAC address to Serial (or take any other action with it)
         printf("Paired Request to device with MAC address: %s\n", mac_str);  // Print MAC to serial
         memcpy(pairing_mac, mac_address, sizeof(pairing_mac));
         pairing_request_t send_request = {
@@ -44,24 +111,18 @@ void send_pair_request(lv_event_t *e){
             return;
           }
         esp_now_send(pairing_mac, (uint8_t *)&send_request, sizeof(send_request));  // Send request to the device
+        Serial.println("Message type 3 sent");
         esp_now_del_peer(pairing_mac);
         pairing_stage = ESPNOW_PAIRING_STAGE_NO_ACTIVITY;
     }
-   /* for (uint32_t i = 0; i < MAXIMUM_AVAILABLE_DEVICES_COUNT; i++) {
-          lv_obj_add_flag(device_list_buttons[i],LV_OBJ_FLAG_HIDDEN);
-        }
-        available_connections = 0;
-        memset(available_connections_macs, 0, sizeof(available_connections_macs));
-        memset(incoming_mac, 0, sizeof(incoming_mac));
-        lv_obj_add_flag(lv_obj_get_parent(lv_obj_get_parent(calling_button)), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(lv_obj_get_screen(calling_button), LV_OBJ_FLAG_SCROLLABLE);*/
-
+//lv_obj_add_flag(lv_obj_get_parent(lv_obj_get_parent(lv_event_get_target(e))),LV_OBJ_FLAG_HIDDEN);
 }
 
 void action_pair_new_espnow_device_button(lv_event_t *e){
  lv_obj_clear_flag(avail_devices_screen, LV_OBJ_FLAG_HIDDEN);
  pairing_stage = ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY;
- update_setting_screen();
+ Serial.println("Pairing state initiated");
+ //update_setting_screen();
 }
 
 void action_pair_device_available_devices_close_button(lv_event_t *e){
@@ -91,19 +152,19 @@ void create_setting_screen() {
         lv_obj_t *parent_obj = setting_screen;
         {
             // settings_screen_pair_device_container
-            lv_obj_t *obj = lv_obj_create(parent_obj);
-            lv_obj_set_pos(obj, 36, 52);
-            lv_obj_set_size(obj, LV_PCT(70), 257);
-            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(obj, lv_color_hex(0xff66708d), LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(obj, 64, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_radius(obj, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_t *settings_screen_main_cont = lv_obj_create(parent_obj);
+            lv_obj_set_pos(settings_screen_main_cont, 40, 50);
+            lv_obj_set_size(settings_screen_main_cont, LV_PCT(70), 257);
+            lv_obj_set_style_pad_left(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(settings_screen_main_cont, lv_color_hex(0xff66708d), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(settings_screen_main_cont, 64, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(settings_screen_main_cont, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
-                lv_obj_t *parent_obj = obj;
+                lv_obj_t *parent_obj = settings_screen_main_cont;
                 {
                     // settings_screen_pair_device_current_pair_container
                     lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -119,25 +180,6 @@ void create_setting_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = obj;
-                        {
-                            // settings_screen_pair_device_unpair_button
-                            lv_obj_t *unpair_btn = lv_btn_create(parent_obj);
-                            lv_obj_set_pos(unpair_btn, -43, 20);
-                            lv_obj_set_size(unpair_btn, 65, 35);
-                            lv_obj_set_style_bg_color(unpair_btn, lv_color_hex(0xff1960ec), LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_align(unpair_btn, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            {
-                                lv_obj_t *parent_obj = obj;
-                                {
-                                    // settings_screen_pair_device_unpair_label
-                                    lv_obj_t *obj = lv_label_create(parent_obj);
-                                    lv_obj_set_pos(obj, 0, 0);
-                                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                                    lv_label_set_text(obj, "Unpair");
-                                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-                                }
-                            }
-                        }
                         {
                             // settings_screen_pair_device_current_pair_label
                             lv_obj_t *obj = lv_label_create(parent_obj);
@@ -162,13 +204,13 @@ void create_setting_screen() {
                         }
                         {
                             // paired device 
-                            lv_obj_t *obj = lv_label_create(parent_obj);
-                            lv_obj_set_pos(obj, 24, -10);
-                            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "");
-                            lv_obj_set_style_text_font(obj, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            paired_device_lbl = lv_label_create(parent_obj);
+                            lv_obj_set_pos(paired_device_lbl, 10, -10);
+                            lv_obj_set_size(paired_device_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                            lv_label_set_text(paired_device_lbl, "No Device Connected!!!");
+                            lv_obj_set_style_text_font(paired_device_lbl, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_align(paired_device_lbl, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_text_align(paired_device_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                     }
                 }
@@ -191,13 +233,32 @@ void create_setting_screen() {
                     lv_label_set_text(obj, "Pair Devices");
                     lv_obj_set_style_text_font(obj, &ui_font_hemi_head_18, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
+                    unpair_btn = lv_btn_create(parent_obj);
+                    lv_obj_set_pos(unpair_btn, 0, LV_PCT(30));
+                    lv_obj_set_size(unpair_btn, 130, 45);
+                    lv_obj_add_event_cb(unpair_btn, unpair_device_action, LV_EVENT_CLICKED, (void *)0);
+                    lv_obj_set_style_bg_color(unpair_btn, lv_color_hex(0xff1960ec), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_add_flag(unpair_btn,LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_set_style_align(unpair_btn, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    {
+                        lv_obj_t *parent_obj = unpair_btn;
+                        {
+                            // settings_screen_pair_device_unpair_label
+                            lv_obj_t *obj = lv_label_create(parent_obj);
+                            lv_obj_set_pos(obj, 0, 0);
+                            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                            lv_label_set_text(obj, "Unpair");
+                            lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                        }
+                    }
                 {
                     // settings_screen_pair_device_new_pair_button
-                    lv_obj_t *pair_new_device_btn = lv_btn_create(parent_obj);
+                    pair_new_device_btn = lv_btn_create(parent_obj);
                     lv_obj_set_pos(pair_new_device_btn, 0, LV_PCT(30));
                     lv_obj_set_size(pair_new_device_btn, 130, 45);
                     lv_obj_add_event_cb(pair_new_device_btn, action_pair_new_espnow_device_button, LV_EVENT_CLICKED, (void *)0);
                     lv_obj_set_style_bg_color(pair_new_device_btn, lv_color_hex(0xff1960ec), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    //lv_obj_add_flag(pair_new_device_btn,LV_OBJ_FLAG_HIDDEN);
                     lv_obj_set_style_align(pair_new_device_btn, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = pair_new_device_btn;

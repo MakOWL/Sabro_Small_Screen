@@ -2,6 +2,7 @@
 #include "widget_dec.h"
 #include "lvgl.h"
 #include "com_structs.h"
+#include "eprom_utils.h"
 
 Panelz tft(BOARD_SC05_PLUS);
 
@@ -78,6 +79,7 @@ void setup()
     tft.fillScreen(TFT_PURPLE);
    
     esp_now_setup();
+    eeprom_init();
     create_main_screen();
     create_data_screen();
 }
