@@ -5,6 +5,7 @@
 
 
 realTime_data data;
+sending_data_t send_data;
 uint8_t available_connections = 0;
 uint8_t available_connections_macs[MAXIMUM_AVAILABLE_DEVICES_COUNT]
                                   [MAC_ADDRESS_ARRAY_SIZE] = {0};
@@ -58,6 +59,8 @@ void on_data_recv(const esp_now_recv_info_t *esp_now_info,const uint8_t *incomin
           Serial.println("Message: AC Break Old Pair Request");
           if (memcmp(esp_now_info->src_addr, pairing_mac, sizeof(pairing_mac)) == 0)
               pairing_stage = ESPNOW_PAIRING_STAGE_FORCE_PAIRING_REQUEST_RECIEVED_FROM_AC;
+              Serial.println("Pairing Stage:");
+              Serial.print((int)pairing_stage);
               // THIS IS WHERE FORCE PAIRING WILL OCCUR
           break;
 
@@ -103,22 +106,34 @@ void on_data_recv(const esp_now_recv_info_t *esp_now_info,const uint8_t *incomin
   }
   }
     if (is_paired && memcmp(esp_now_info->src_addr, paired_mac, sizeof(paired_mac)) == 0) {
-    if (len == sizeof(realTime_data)) {
+      Serial.print("\nis_paired:");
+      Serial.print((int)is_paired);
+    if ( len == sizeof(realTime_data)) {
       memcpy(&data, incoming_data, sizeof(realTime_data));
       Serial.println("Real-time data size matched");
       update_main_screen(data);
       update_data_screen(data);
-    }
-
-    if (len == sizeof(paired_device_name)) {
+      if(setting_screen != NULL){
+        lv_obj_add_flag(pair_new_device_btn,LV_OBJ_FLAG_HIDDEN);// hide the pair button 
+        lv_obj_clear_flag(unpair_btn,LV_OBJ_FLAG_HIDDEN);
+      //  lv_label_set_text(paired_device_lbl, data.)
+      }
+      }
+      if ( len == sizeof(paired_device_name)) {
       strncpy(paired_device_name, (char *)incoming_data, sizeof(paired_device_name));
       Serial.print("Paired Device Name Received: ");
-      // unhide the unpair button
-      lv_obj_add_flag(pair_new_device_btn,LV_OBJ_FLAG_HIDDEN);// hide the pair button 
-      lv_obj_clear_flag(unpair_btn,LV_OBJ_FLAG_HIDDEN);
       Serial.println(paired_device_name);
       lv_label_set_text(paired_device_lbl, paired_device_name);
+    } 
+
     }
+    
+}
+void request_paired_device_name() {
+    if (is_paired) {
+        uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
+        esp_now_send(paired_mac, &send_request, sizeof(send_request));  // Send request to paired device
+        Serial.println("Requesting paired device name...");
     }
 }
 

@@ -18,6 +18,7 @@ lv_obj_t *img_cool_obj;
 lv_obj_t *img_heat_obj;
 lv_obj_t *img_fan_obj;
 lv_obj_t *img_dry_obj;
+lv_obj_t *power_img;
 lv_obj_t *date_time_label;
 
 
@@ -35,6 +36,85 @@ lv_color_t fan_color = lv_color_hex(0x40d7d7);
 lv_color_t dry_color = lv_color_hex(0xfc9e2b);
 lv_color_t default_color = lv_color_hex(0xFFFFFF);
 
+void action_send_data(lv_event_t *e){
+  lv_event_code_t event_code = lv_event_get_code(e);
+  lv_obj_t *calling_widget = lv_event_get_target(e);
+  if (event_code == LV_EVENT_CLICKED)
+    {
+      if(calling_widget == img_auto_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_AUTO;}
+      if(calling_widget == img_cool_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_COOL;}
+      if(calling_widget == img_heat_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_HEAT;}
+      if(calling_widget == img_fan_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_FAN;}
+      if(calling_widget == img_dry_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_DRY;} 
+      if (calling_widget == power_img){
+      send_data.status_bits = 0;
+      bitWrite(send_data.status_bits, SEND_AC_POWER_STATUS_BIT,
+                      !bitRead(data.ble_byte_1, 7));
+      } else{      
+      bitWrite(send_data.status_bits, SEND_AC_POWER_STATUS_BIT,
+                bitRead(data.ble_byte_1, 7));
+      }
+
+     esp_now_send(paired_mac, (uint8_t *)&send_data, sizeof(send_data));
+}
+}
+void action_mode_change(lv_event_t *e){
+  // this function will handle all the modes(Auto, cooling, heating, dry, fan)
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *calling_widget = lv_event_get_target(e);
+    if(event_code == LV_EVENT_CLICKED){
+      if(calling_widget == img_auto_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_AUTO;}
+      if(calling_widget == img_cool_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_COOL;}
+      if(calling_widget == img_heat_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_HEAT;}
+      if(calling_widget == img_fan_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_FAN;}
+      if(calling_widget == img_dry_obj){send_data.status_bits == SEND_AC_RUNNING_MODE_DRY;}  
+    }
+         esp_now_send(paired_mac, (uint8_t *)&send_data, sizeof(send_data));
+  
+}
+
+
+void action_temperature_decrement_button(lv_event_t *e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *target_label = (lv_obj_t *)lv_event_get_user_data(e);
+    if (event_code == LV_EVENT_CLICKED) {
+        uint32_t temp = strtol(lv_label_get_text(target_label), NULL, 10);
+        temp = temp > MIN_SET_TEMPERATURE ? temp - 1 : temp;
+
+      send_data.status_bits = 0;
+
+      bitWrite(send_data.status_bits, SEND_AC_POWER_STATUS_BIT,
+               bitRead(data.ble_byte_1, 7));
+      bitWrite(send_data.status_bits, SEND_AC_SWING_STATUS_BIT,
+               bitRead(data.ble_byte_1, 6));
+
+      send_data.set_temperature = temp;
+      esp_now_send (paired_mac, (uint8_t *) &send_data, sizeof (send_data));
+
+    }
+}
+
+void action_temperature_increment_button(lv_event_t *e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t *target_label = (lv_obj_t *)lv_event_get_user_data(e);
+    if (event_code == LV_EVENT_CLICKED) {
+      uint16_t temp = strtol(lv_label_get_text(target_label), NULL, 10);
+      temp = temp < MAX_SET_TEMPERATURE ? temp + 1 : temp;
+
+
+      send_data.status_bits = 0;
+
+      bitWrite(send_data.status_bits, SEND_AC_POWER_STATUS_BIT,
+               bitRead(data.ble_byte_1, 7));
+      bitWrite(send_data.status_bits, SEND_AC_SWING_STATUS_BIT,
+               bitRead(data.ble_byte_1, 6));
+
+      send_data.set_temperature = temp;
+
+      esp_now_send (paired_mac, (uint8_t *) &send_data, sizeof (send_data));
+
+    }
+}
 
 void mode_image_event_handler(lv_event_t *e) {
   lv_obj_t *img = lv_event_get_target(e);
@@ -154,6 +234,8 @@ void create_main_screen() {
           lv_obj_set_style_align(img_cool_obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_border_color(img_cool_obj, lv_color_hex(0xff1960ec), LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_border_width(img_cool_obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+          lv_obj_add_event_cb(img_cool_obj, action_send_data, LV_EVENT_CLICKED, (void *) 0);
+          lv_obj_add_event_cb(img_cool_obj, action_send_data, LV_EVENT_CLICKED, NULL);
           lv_obj_set_style_img_recolor(img_cool_obj, cool_color, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor_opa(img_cool_obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
       }
@@ -166,6 +248,7 @@ void create_main_screen() {
       lv_img_set_zoom(img_heat_obj, 200);
       lv_obj_add_flag(img_heat_obj, LV_OBJ_FLAG_CLICKABLE);
       lv_obj_add_event_cb(img_heat_obj, mode_image_event_handler, LV_EVENT_CLICKED, NULL);
+      lv_obj_add_event_cb(img_heat_obj, action_send_data, LV_EVENT_CLICKED, NULL);
       lv_obj_set_style_align(img_heat_obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
       lv_obj_set_style_img_recolor(img_heat_obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
       lv_obj_set_style_img_recolor_opa(img_heat_obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -179,6 +262,7 @@ void create_main_screen() {
           lv_img_set_zoom(img_fan_obj, 200);
           lv_obj_add_flag(img_fan_obj, LV_OBJ_FLAG_CLICKABLE);
           lv_obj_add_event_cb(img_fan_obj, mode_image_event_handler, LV_EVENT_CLICKED, NULL);
+          lv_obj_add_event_cb(img_fan_obj, action_send_data, LV_EVENT_CLICKED, NULL);
           lv_obj_set_style_align(img_fan_obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor(img_fan_obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor_opa(img_fan_obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -193,6 +277,7 @@ void create_main_screen() {
           lv_img_set_zoom(img_dry_obj, 200);
           lv_obj_add_flag(img_dry_obj, LV_OBJ_FLAG_CLICKABLE);
           lv_obj_add_event_cb(img_dry_obj, mode_image_event_handler, LV_EVENT_CLICKED, NULL);
+          lv_obj_add_event_cb(img_dry_obj, action_send_data, LV_EVENT_CLICKED, NULL);
           lv_obj_set_style_align(img_dry_obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor(img_dry_obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor_opa(img_dry_obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -207,6 +292,7 @@ void create_main_screen() {
           lv_img_set_zoom(img_auto_obj, 200);
           lv_obj_add_event_cb(img_auto_obj, mode_image_event_handler, LV_EVENT_CLICKED, NULL);
           lv_obj_add_flag(img_auto_obj, LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_add_event_cb(img_auto_obj, action_send_data, LV_EVENT_CLICKED, NULL);
           lv_obj_set_style_align(img_auto_obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor_opa(img_auto_obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_obj_set_style_img_recolor(img_auto_obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -262,6 +348,7 @@ void create_main_screen() {
     lv_obj_add_event_cb(dec_button, button_event_handler, LV_EVENT_CLICKED, NULL);
     lv_obj_t *dec_label = lv_label_create(dec_button);
     lv_label_set_text(dec_label, "-");
+    lv_obj_add_event_cb(dec_button, action_temperature_decrement_button, LV_EVENT_CLICKED, temp_label);
     lv_obj_set_style_align(dec_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(dec_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
 
@@ -273,7 +360,7 @@ void create_main_screen() {
     //lv_obj_add_flag(mode_label, LV_OBJ_FLAG_CLICKABLE);
 
     //Power button
-    lv_obj_t *power_img = lv_img_create(main_screen);
+    power_img = lv_img_create(main_screen);
     lv_obj_set_pos(power_img, 173, 251);
     lv_obj_set_size(power_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_img_set_src(power_img, &img_power_button);
@@ -291,6 +378,7 @@ void create_main_screen() {
     lv_obj_set_style_shadow_width(power_img, 4, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_color(power_img, lv_color_hex(0xff167016), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_spread(power_img, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(power_img, action_send_data, LV_EVENT_CLICKED, (void *) 0);
     lv_scr_load(main_screen);
 }
 

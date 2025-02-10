@@ -11,6 +11,7 @@ enum eeprom_addresses
 void eeprom_init ();
 void eeprom_add_mac_address();
 void eeprom_clear_mac_address();
+void eeprom_reset();
 
 
 

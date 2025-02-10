@@ -35,3 +35,11 @@
     EEPROM.write (EEPROM_ADDRESS_ESPNOW_IS_PAIRED, (uint8_t) is_paired);
     EEPROM.commit();
   }
+  void eeprom_reset()
+{
+    for (int i = EEPROM_START_ADDRESS; i < EEPROM_END_ADDRESS; i++)
+    {
+        EEPROM.write(i, 0xFF);
+    }
+    EEPROM.commit();
+}

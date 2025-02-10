@@ -272,6 +272,7 @@ if (!is_paired &&
       //screen should hide here 
        
       uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
+      
       memcpy(last_sent_data, &send_request, sizeof(send_request));
       last_sent_data_length = sizeof(send_request);
       esp_now_send(paired_mac, (uint8_t *)&send_request, sizeof(send_request));

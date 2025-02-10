@@ -24,10 +24,26 @@ void force_unpair_close(lv_event_t *e) {
 }
 
 void force_unpair(lv_event_t *e){
-  if(!is_paired){return;}
+  if(!is_paired) return;
+
+    esp_now_peer_info_t peerInfo;
+    if (esp_now_get_peer(paired_mac, &peerInfo) != ESP_OK) {
+        Serial.println("Peer not found. Trying to add before deleting...");
+
+        // Add the peer again before trying to delete it
+        memset(&peerInfo, 0, sizeof(peerInfo));
+        memcpy(peerInfo.peer_addr, paired_mac, sizeof(paired_mac));
+        peerInfo.channel = 0;
+        peerInfo.encrypt = false;
+        
+        if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+            Serial.println("Failed to add peer for deletion");
+            return;
+        }
+    }
    
    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
-    Serial.printf("Mac Address %x:%x:%x:%x:%x:%x",paired_mac[0],paired_mac[1],paired_mac[2],paired_mac[3],paired_mac[4],paired_mac[5]);
+    Serial.printf("Mac Address %x:%x:%x:%x:%x:%x/n",paired_mac[0],paired_mac[1],paired_mac[2],paired_mac[3],paired_mac[4],paired_mac[5]);
     if (esp_now_del_peer(paired_mac) != ESP_OK) {
        Serial.println("Failed to delete peer");
       return;
@@ -64,7 +80,7 @@ void force_pair_action(lv_event_t *e) {
   if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
     pairing_request_t send_confirmation = {
         ESPNOW_MESSAGE_TYPE_SCREEN_BREAK_OLD_PAIR_CONFIRMATION,
-        ESPNOW_MESSAGE_DATA_SABRO_SCREEN_AUTHENTICATOR};
+        ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR };
     esp_now_peer_info_t temp_peer;
     temp_peer.channel = 0;
     temp_peer.encrypt = false;
@@ -207,7 +223,7 @@ void create_setting_screen() {
                             paired_device_lbl = lv_label_create(parent_obj);
                             lv_obj_set_pos(paired_device_lbl, 10, -10);
                             lv_obj_set_size(paired_device_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                            lv_label_set_text(paired_device_lbl, "No Device Connected!!!");
+                            lv_label_set_text(paired_device_lbl, "Unpaired");
                             lv_obj_set_style_text_font(paired_device_lbl, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_align(paired_device_lbl, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_align(paired_device_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);

@@ -17,6 +17,7 @@ extern lv_obj_t *temp_dial;
 extern lv_obj_t *mode_label;
 extern lv_obj_t *date_time_label;
 
+
 //widgets data screen
 extern lv_obj_t *data_screen;
 extern lv_obj_t *comp_data;
@@ -35,6 +36,7 @@ extern lv_obj_t *img_cool_obj;
 extern lv_obj_t *img_heat_obj;
 extern lv_obj_t *img_fan_obj;
 extern lv_obj_t *img_dry_obj;
+extern lv_obj_t *power_img;
 
 // data screen stuff
 extern lv_obj_t *comp_data_label;

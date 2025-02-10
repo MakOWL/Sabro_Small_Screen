@@ -77,9 +77,12 @@ void setup()
     indev_drv.read_cb = my_touchpad_read;
     lv_indev_drv_register( &indev_drv );
     tft.fillScreen(TFT_PURPLE);
-   
-    esp_now_setup();
+
     eeprom_init();
+    esp_now_setup();
+    uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
+    esp_now_send(paired_mac, (uint8_t *)&send_request, sizeof(send_request));
+   // eeprom_reset();
     create_main_screen();
     create_data_screen();
 }

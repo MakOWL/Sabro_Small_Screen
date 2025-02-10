@@ -17,7 +17,7 @@ enum {
 };
 
 typedef struct realTime_data{
-  uint8_t warning_code;
+ uint8_t warning_code;
 
   uint8_t rtc_sec;
   uint8_t rtc_min;
@@ -101,7 +101,7 @@ enum {
   ESPNOW_MESSAGE_TYPE_THREE_PHASE_METER_DATA,
   ESPNOW_MESSAGE_DATA_SABRO_SCREEN_AUTHENTICATOR = 1184005015U,
   ESPNOW_MESSAGE_DATA_SABRO_AC_AUTHENTICATOR = 1184005016U,
-  ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR = 1184005015U,
+  ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR = 1184005014U,
 };
 
 
@@ -121,6 +121,34 @@ enum screen_pairing_stages {
   ESPNOW_PAIRING_STAGE_UNPAIRING_REQUESTED_TIMEOUT = 5000,
 };
 
+enum maximum_minimum_values {
+    MIN_SET_TEMPERATURE = 16,
+    MAX_SET_TEMPERATURE = 30,
+  };
+
+enum ac_sending_data_status_bits {
+  SEND_AC_POWER_STATUS_BIT = 0,
+  SEND_AC_SWING_STATUS_BIT,
+  SEND_AC_ECO_MODE_STATUS,
+  SEND_AC_RUNNING_MODE_BIT_0,
+  SEND_AC_RUNNING_MODE_BIT_1,
+  SEND_AC_RUNNING_MODE_BIT_2,
+  SEND_AC_FAN_SPEED_BIT_0,
+  SEND_AC_FAN_SPEED_BIT_1,
+  SEND_AC_FAN_SPEED_BIT_2,
+  SEND_AC_RUNNING_MODE_CLEAR = 0x1c7,
+  SEND_AC_RUNNING_MODE_AUTO = 0x08,
+  SEND_AC_RUNNING_MODE_COOL = 0x10,
+  SEND_AC_RUNNING_MODE_FAN = 0x18,
+  SEND_AC_RUNNING_MODE_HEAT = 0x20,
+  SEND_AC_RUNNING_MODE_DRY = 0x28,
+  SEND_AC_FAN_SPEED_CLEAR = 0x3f,
+  SEND_AC_FAN_SPEED_LOW = 0x40,
+  SEND_AC_FAN_SPEED_MEDIUM = 0x80,
+  SEND_AC_FAN_SPEED_HIGH = 0xc0,
+  SEND_AC_FAN_SPEED_AUTO = 0x100,
+};
+
 typedef struct sending_data_structure {
   uint8_t set_temperature;
   uint16_t status_bits;
@@ -136,6 +164,8 @@ typedef struct pairing_request_structure {
   uint8_t message_type;
   uint32_t authenticator;
 } pairing_request_t;
+
+
 
 extern uint8_t available_connections;
 extern uint8_t available_connections_macs[MAXIMUM_AVAILABLE_DEVICES_COUNT]
@@ -157,7 +187,9 @@ extern uint16_t unpairing_request_send_time;
 
 
 extern realTime_data data;
+extern sending_data_t send_data;
 void esp_now_setup();
+void request_paired_device_name();
 void update_main_screen(realTime_data data);
 void update_data_screen(realTime_data data);
 void update_setting_screen();
@@ -167,6 +199,7 @@ void force_unpair_close(lv_event_t *e);
 void force_unpair(lv_event_t *e);
 void force_pair_action(lv_event_t *e);
 void force_pair_close_button_action(lv_event_t *e);
+void action_send_data(lv_event_t *e);
 
 // for serial printing
 extern uint8_t last_sent_data[MAX_DATA_SIZE];
