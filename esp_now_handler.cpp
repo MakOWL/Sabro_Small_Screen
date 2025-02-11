@@ -119,22 +119,13 @@ void on_data_recv(const esp_now_recv_info_t *esp_now_info,const uint8_t *incomin
       //  lv_label_set_text(paired_device_lbl, data.)
       }
       }
-      if ( len == sizeof(paired_device_name)) {
+       if ( len == sizeof(paired_device_name)) {
       strncpy(paired_device_name, (char *)incoming_data, sizeof(paired_device_name));
       Serial.print("Paired Device Name Received: ");
       Serial.println(paired_device_name);
       lv_label_set_text(paired_device_lbl, paired_device_name);
     } 
-
-    }
-    
-}
-void request_paired_device_name() {
-    if (is_paired) {
-        uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
-        esp_now_send(paired_mac, &send_request, sizeof(send_request));  // Send request to paired device
-        Serial.println("Requesting paired device name...");
-    }
+    }  
 }
 
 void on_data_sent(const uint8_t *mac_addr, esp_now_send_status_t status) {

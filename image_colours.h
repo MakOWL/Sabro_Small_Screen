@@ -8,4 +8,12 @@ extern lv_color_t fan_color;
 extern lv_color_t dry_color;
 extern lv_color_t default_color;
 
+   enum color_codes
+  {
+      COLOR_INCUBUS = 0x722626,
+      COLOR_SILKEN_RUBY = 0xe61717,
+      COLOR_LIMA = 0x3ce221,
+      COLOR_BILBAO = 0x167016,
+      COLOR_RED = 0xeb4030
+  };
 #endif

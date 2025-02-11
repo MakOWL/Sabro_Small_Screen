@@ -53,7 +53,7 @@ void force_unpair(lv_event_t *e){
     eeprom_clear_mac_address();
     lv_obj_add_flag(unpair_btn,LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(pair_new_device_btn,LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_text(paired_device_lbl,"No Device Connected!!!");
+    lv_label_set_text(paired_device_lbl,"Unpaired");
     lv_obj_del(lv_obj_get_parent(lv_obj_get_parent(lv_event_get_target(e))));
 
 }

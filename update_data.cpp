@@ -21,6 +21,27 @@ void update_main_screen(realTime_data data){
   uint8_t R1 = bitRead(data.ble_byte_2, 7);
   uint8_t R2 = bitRead(data.ble_byte_2, 6);
   uint8_t R3 = bitRead(data.ble_byte_5, 7);
+    if (bitRead(data.ble_byte_1, 7) == 1) {
+    lv_obj_set_style_bg_color(power_img,
+                              lv_color_hex(COLOR_LIMA),
+                              LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_color(power_img,
+                                   lv_color_hex(COLOR_BILBAO),
+                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_color(power_img,
+                                  lv_color_hex(COLOR_BILBAO),
+                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+  } else {
+    lv_obj_set_style_bg_color(power_img,
+                              lv_color_hex(COLOR_SILKEN_RUBY),
+                              LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_color(power_img,
+                                   lv_color_hex(COLOR_INCUBUS),
+                                   LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_shadow_color(power_img,
+                                  lv_color_hex(COLOR_INCUBUS),
+                                  LV_PART_MAIN | LV_STATE_DEFAULT);
+  }
   lv_obj_set_style_img_recolor(img_cool_obj, default_color, LV_PART_MAIN);
   lv_obj_set_style_img_recolor(img_fan_obj, default_color, LV_PART_MAIN);
   lv_obj_set_style_img_recolor(img_dry_obj, default_color, LV_PART_MAIN);
@@ -57,7 +78,14 @@ void update_main_screen(realTime_data data){
                       data.rtc_day, 
                       (data.rtc_month != 0) ? month_names[data.rtc_month - 1] : month_names[data.rtc_month],
                       data.rtc_year);
-   lv_arc_set_value(temp_dial, data.temp);
+  if(data.temp >= 16 && data.temp <= 30 )
+   {
+    lv_arc_set_value(temp_dial, data.temp);
+    lv_label_set_text_fmt(temp_label,"%.f",data.temp);
+    Serial.println("Temperature:");
+    Serial.print(data.temp);  // Assuming data.temp is a float
+
+   }
 }
 
 void update_data_screen(realTime_data data) {
@@ -143,7 +171,10 @@ void update_data_screen(realTime_data data) {
         lv_label_set_text(inv_lbl, "Inv: Heat");
 
     lv_label_set_text(motor_lbl,bitRead(data.ble_byte_2, 0) ? "Motor: On" : "Motor: Off");
-    lv_label_set_text(delay_lbl,bitRead(data.ble_byte_3, 0) ? "S Delay: Yes" : "S Delay: No");   
+    lv_label_set_text(delay_lbl,bitRead(data.ble_byte_3, 0) ? "S Delay: Yes" : "S Delay: No");
+
+    // Power
+    lv_label_set_text_fmt(,"Volt: %4.2f",data.alternating_current_volts);   
 }
 
 
