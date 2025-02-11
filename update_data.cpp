@@ -172,9 +172,75 @@ void update_data_screen(realTime_data data) {
 
     lv_label_set_text(motor_lbl,bitRead(data.ble_byte_2, 0) ? "Motor: On" : "Motor: Off");
     lv_label_set_text(delay_lbl,bitRead(data.ble_byte_3, 0) ? "S Delay: Yes" : "S Delay: No");
+  
+  // Defrost 
+    lv_obj_t *cycle_lbl = lv_obj_get_child(defrost_data,0);
+    lv_obj_t *mode_lbl = lv_obj_get_child(defrost_data,1);
+    lv_obj_t *check_lbl = lv_obj_get_child(defrost_data,2);
+    lv_obj_t *rv_lbl = lv_obj_get_child(defrost_data,3);
+      
+    if (bitRead(data.ble_byte_3, 3) == 1)
+      lv_label_set_text(cycle_lbl, "Cycle: Yes");
+
+    else
+      lv_label_set_text(cycle_lbl, "Cycle: No");
+
+    if (bitRead(data.ble_byte_3, 4) == 1)
+      lv_label_set_text(mode_lbl, "Mode: Yes");
+    else
+      lv_label_set_text(mode_lbl, "Mode: No");
+
+    if (bitRead(data.ble_byte_3, 2) == 1)
+      lv_label_set_text(check_lbl,"Check:  Yes");
+    else
+      lv_label_set_text(check_lbl, "Check:  No");
+    
+    lv_label_set_text(rv_lbl,bitRead(data.ble_byte_4, 0) ? "RVS: On": "RVS: Off");
 
     // Power
-    lv_label_set_text_fmt(,"Volt: %4.2f",data.alternating_current_volts);   
+    lv_obj_t *volt_lbl = lv_obj_get_child(power_data, 2);
+    lv_label_set_text_fmt(volt_lbl,"Volt: %4.2f",data.alternating_current_volts);
+    lv_obj_t *amp_lbl = lv_obj_get_child(power_data, 1);
+    lv_label_set_text_fmt(amp_lbl,"Amp: %4.2f",data.system_current);
+    lv_obj_t *dcv_lbl = lv_obj_get_child(power_data, 0);
+    lv_label_set_text_fmt(dcv_lbl,"DCV: %4.2f",data.dc_volts);
+    lv_obj_t *dca_lbl = lv_obj_get_child(power_data, 4);
+    lv_label_set_text_fmt(dca_lbl,"DCA: %4.2f",data.compressor_current);
+
+    // Temperature
+    lv_obj_t *set_temp_lbl = lv_obj_get_child(temp_data, 2);
+    lv_label_set_text_fmt(set_temp_lbl,"Set: %4.2f",data.temp);
+    lv_obj_t *room_temp_lbl = lv_obj_get_child(temp_data, 1);
+    lv_label_set_text_fmt(room_temp_lbl,"Room: %4.2f",data.room_sensor);
+    lv_obj_t *coil_lbl = lv_obj_get_child(temp_data, 3);
+    lv_label_set_text_fmt(coil_lbl,"Coil: %4.2f",data.coil_sensor);
+    lv_obj_t *delta_lbl = lv_obj_get_child(temp_data, 4);
+    lv_label_set_text_fmt(delta_lbl,"Delta: %4.2f",data.delta_temp);
+    lv_obj_t *da_lbl = lv_obj_get_child(temp_data, 5);
+    lv_label_set_text(da_lbl,bitRead(data.ble_byte_1, 1) ? "DA: Yes" : "DA: No");
+
+    // Refrigeration
+    lv_obj_t *at_lbl = lv_obj_get_child(refrig_data, 4);
+    lv_obj_t *lline_lbl = lv_obj_get_child(refrig_data, 5);
+    lv_obj_t *sline_lbl = lv_obj_get_child(refrig_data, 2);
+    lv_obj_t *dline_lbl = lv_obj_get_child(refrig_data, 3);
+    lv_obj_t *sp_lbl = lv_obj_get_child(refrig_data, 0);
+    lv_obj_t *dp_lbl = lv_obj_get_child(refrig_data,1);
+
+    lv_label_set_text_fmt(at_lbl,"AT: %4.2f",data.outdoor_unit_ambient_temp);
+    lv_label_set_text_fmt(lline_lbl,"L Line: %4.2f", data.liquid_line_temp); 
+    lv_label_set_text_fmt(sline_lbl,"S Line: %4.2f",data.suction_line_temp);
+    lv_label_set_text_fmt(dline_lbl,"D Line: %4.2f",data.discharge_line_temp);
+    if (data.suction_line_pressure != 0.00)
+      lv_label_set_text_fmt(sp_lbl,"SP: %4.2f",data.suction_line_pressure);
+    else
+      lv_label_set_text(sp_lbl,"SP: Calibrating");
+
+    if (data.discharge_line_pressure != 0)
+      lv_label_set_text_fmt(dp_lbl,"DP: %4.2f",data.discharge_line_pressure);
+    else
+      lv_label_set_text(dp_lbl,"DP: Calibrating");
+
 }
 
 

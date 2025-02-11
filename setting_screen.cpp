@@ -213,6 +213,7 @@ void create_setting_screen() {
                             lv_obj_set_size(paired_device_lbl, LV_PCT(100), LV_SIZE_CONTENT);
                             lv_label_set_long_mode(paired_device_lbl, LV_LABEL_LONG_SCROLL_CIRCULAR);
                             lv_label_set_text(paired_device_lbl, "No pair safhkjadsfhkjsfhkjsdhfkjsdhfkjsdhfshdfkshdfk");
+                            lv_label_set_long_mode(paired_device_lbl,LV_LABEL_LONG_SCROLL);
                             lv_obj_set_style_text_font(paired_device_lbl, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_align(paired_device_lbl, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_pad_left(paired_device_lbl, 120, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -221,11 +222,11 @@ void create_setting_screen() {
                         {
                             // paired device 
                             paired_device_lbl = lv_label_create(parent_obj);
-                            lv_obj_set_pos(paired_device_lbl, 10, -10);
+                            lv_obj_set_pos(paired_device_lbl, 0, 0);
                             lv_obj_set_size(paired_device_lbl, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                             lv_label_set_text(paired_device_lbl, "Unpaired");
                             lv_obj_set_style_text_font(paired_device_lbl, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
-                            lv_obj_set_style_align(paired_device_lbl, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_align(paired_device_lbl, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_text_align(paired_device_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                     }
@@ -234,8 +235,9 @@ void create_setting_screen() {
                     // settings_screen_pair_device_warning_label
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     lv_obj_set_pos(obj, 0, LV_PCT(10));
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_size(obj, LV_PCT(90), LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "Pairing a new device will unpair the current paired device");
+                     lv_label_set_long_mode(obj,LV_LABEL_LONG_SCROLL);
                     lv_obj_set_style_text_font(obj, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -255,7 +257,7 @@ void create_setting_screen() {
                     lv_obj_add_event_cb(unpair_btn, unpair_device_action, LV_EVENT_CLICKED, (void *)0);
                     lv_obj_set_style_bg_color(unpair_btn, lv_color_hex(0xff1960ec), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_add_flag(unpair_btn,LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_set_style_align(unpair_btn, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(unpair_btn, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     {
                         lv_obj_t *parent_obj = unpair_btn;
                         {
@@ -283,7 +285,7 @@ void create_setting_screen() {
                             lv_obj_t *obj = lv_label_create(parent_obj);
                              lv_obj_set_pos(obj, 0, 0);
                             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                            lv_label_set_text(obj, "Pair new device");
+                            lv_label_set_text(obj, "Pair");
                             lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                         }
                     }
