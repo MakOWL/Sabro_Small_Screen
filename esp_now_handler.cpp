@@ -106,8 +106,6 @@ void on_data_recv(const esp_now_recv_info_t *esp_now_info,const uint8_t *incomin
   }
   }
     if (is_paired && memcmp(esp_now_info->src_addr, paired_mac, sizeof(paired_mac)) == 0) {
-      Serial.print("\nis_paired:");
-      Serial.print((int)is_paired);
     if ( len == sizeof(realTime_data)) {
       memcpy(&data, incoming_data, sizeof(realTime_data));
       Serial.println("Real-time data size matched");
@@ -125,7 +123,13 @@ void on_data_recv(const esp_now_recv_info_t *esp_now_info,const uint8_t *incomin
       Serial.println(paired_device_name);
       lv_label_set_text(paired_device_lbl, paired_device_name);
     } 
-    }  
+    }
+     if ( len == sizeof(paired_device_name)) {
+      strncpy(paired_device_name, (char *)incoming_data, sizeof(paired_device_name));
+      Serial.print("Paired Device Name Received: ");
+      Serial.println(paired_device_name);
+      lv_label_set_text(paired_device_lbl, paired_device_name);
+    }   
 }
 
 void on_data_sent(const uint8_t *mac_addr, esp_now_send_status_t status) {

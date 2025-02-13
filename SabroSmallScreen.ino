@@ -82,8 +82,10 @@ void setup()
     esp_now_setup();
     uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
     esp_now_send(paired_mac, (uint8_t *)&send_request, sizeof(send_request));
+    Serial.printf("Mac Address %x:%x:%x:%x:%x:%x/n",paired_mac[0],paired_mac[1],paired_mac[2],paired_mac[3],paired_mac[4],paired_mac[5]);
    // eeprom_reset();
     create_main_screen();
+    create_additional_modes_screen();
     create_data_screen();
 }
 

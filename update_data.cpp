@@ -78,6 +78,11 @@ void update_main_screen(realTime_data data){
                       data.rtc_day, 
                       (data.rtc_month != 0) ? month_names[data.rtc_month - 1] : month_names[data.rtc_month],
                       data.rtc_year);
+    lv_obj_t *amb_temp_label = lv_obj_get_child(amb_temp_img,0);
+    lv_obj_t *room_temp_label = lv_obj_get_child(room_temp_img,0);
+    lv_label_set_text_fmt(room_temp_label,"%4.1f",data.room_sensor);
+    lv_label_set_text_fmt(amb_temp_label,"%4.1f",data.outdoor_unit_ambient_temp);
+    
   if(data.temp >= 16 && data.temp <= 30 )
    {
     lv_arc_set_value(temp_dial, data.temp);
@@ -243,30 +248,14 @@ void update_data_screen(realTime_data data) {
 
 }
 
-
 void update_setting_screen() {
   static uint32_t last_broadcast_time = 0;
   bool mac_already_exist = false;
 
-  
   if (setting_screen == NULL)
-    return;// if the screen is null then dont crash 
+    return; // If the screen is null, don't crash 
 
-  if (pairing_stage == ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY &&
-    ((millis() - last_broadcast_time) > ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY_BROADCAST_TIMEOUT)){
-
-        memset(available_connections_macs, 0, sizeof(available_connections_macs));
-        memset(incoming_mac, 0, sizeof(incoming_mac));
-
-  for (uint8_t i = 0; i < available_connections; i++)
-      lv_obj_add_flag(device_list_buttons[i], LV_OBJ_FLAG_HIDDEN);
-      available_connections = 0;
-      pairing_request_t send_request = {ESPNOW_MESSAGE_TYPE_PAIRING_AVAILABILITY_REQUEST,ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR};
-      esp_now_send(broadcast_mac, (uint8_t *)&send_request,sizeof(send_request));
-      Serial.println("Message type 2 sent");
-      last_broadcast_time = millis();
-    }   
-
+  // Check for duplicate MACs before resetting the list
   for (uint8_t i = 0; i < available_connections; i++) {
     if (memcmp(available_connections_macs[i], incoming_mac, MAC_ADDRESS_ARRAY_SIZE) == 0) {
       mac_already_exist = true;
@@ -274,8 +263,8 @@ void update_setting_screen() {
     }
   }
 
-    
- if (!mac_already_exist && strlen(incoming_pairing_data.device_name) > 0) {
+  // If MAC is new and device name is valid, add to the list
+  if (!mac_already_exist && strlen(incoming_pairing_data.device_name) > 0) {
     // Copy the incoming MAC address into the available connections array
     memcpy(&available_connections_macs[available_connections][0], incoming_mac, MAC_ADDRESS_ARRAY_SIZE * sizeof(uint8_t));
 
@@ -284,7 +273,27 @@ void update_setting_screen() {
     lv_obj_clear_flag(device_list_buttons[available_connections], LV_OBJ_FLAG_HIDDEN);
 
     available_connections++;
-}
+  }
+
+  // Only reset the list and broadcast at specific intervals
+  if (pairing_stage == ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY &&
+      ((millis() - last_broadcast_time) > ESPNOW_PAIRING_STAGE_REQUESTING_AVAILABILITY_BROADCAST_TIMEOUT)) {
+
+    // Clear the list and hide buttons
+    for (uint8_t i = 0; i < available_connections; i++)
+      lv_obj_add_flag(device_list_buttons[i], LV_OBJ_FLAG_HIDDEN);
+    available_connections = 0;
+
+    // Send pairing availability request
+    pairing_request_t send_request = {
+        ESPNOW_MESSAGE_TYPE_PAIRING_AVAILABILITY_REQUEST,
+        ESPNOW_MESSAGE_DATA_SABRO_SMALL_SCREEN_AUTHENTICATOR
+    };
+    esp_now_send(broadcast_mac, (uint8_t *)&send_request, sizeof(send_request));
+    Serial.println("Message type 2 sent");
+    last_broadcast_time = millis();
+  }
+
 if (pairing_stage == ESPNOW_PAIRING_STAGE_SCREEN_REQUESTED_UNPAIRING &&
         (millis() - unpairing_request_send_time) >= ESPNOW_PAIRING_STAGE_UNPAIRING_REQUESTED_TIMEOUT)
       {
