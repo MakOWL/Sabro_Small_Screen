@@ -23,23 +23,23 @@ void update_main_screen(realTime_data data){
   uint8_t R3 = bitRead(data.ble_byte_5, 7);
     if (bitRead(data.ble_byte_1, 7) == 1) {
     lv_obj_set_style_bg_color(power_img,
-                              lv_color_hex(COLOR_LIMA),
+                              lv_color_hex(FIXED_COLOR(COLOR_LIMA)),
                               LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_grad_color(power_img,
-                                   lv_color_hex(COLOR_BILBAO),
+                                   lv_color_hex(FIXED_COLOR(COLOR_BILBAO)),
                                    LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_color(power_img,
-                                  lv_color_hex(COLOR_BILBAO),
+                                  lv_color_hex(FIXED_COLOR(COLOR_BILBAO)),
                                   LV_PART_MAIN | LV_STATE_DEFAULT);
   } else {
     lv_obj_set_style_bg_color(power_img,
-                              lv_color_hex(COLOR_SILKEN_RUBY),
+                              lv_color_hex(FIXED_COLOR(COLOR_SILKEN_RUBY)),
                               LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_grad_color(power_img,
-                                   lv_color_hex(COLOR_INCUBUS),
+                                   lv_color_hex(FIXED_COLOR(COLOR_INCUBUS)),
                                    LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_color(power_img,
-                                  lv_color_hex(COLOR_INCUBUS),
+                                  lv_color_hex(FIXED_COLOR(COLOR_INCUBUS)),
                                   LV_PART_MAIN | LV_STATE_DEFAULT);
   }
   lv_obj_set_style_img_recolor(img_cool_obj, default_color, LV_PART_MAIN);

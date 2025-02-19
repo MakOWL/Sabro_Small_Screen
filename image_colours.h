@@ -1,5 +1,6 @@
 #ifndef IMAGE_COLOURS_H
 #define IMAGE_COLOURS_H
+#define FIXED_COLOR(color)  (((color & 0x0000FF) << 16) | (color & 0x00FF00) | ((color & 0xFF0000) >> 16))
 
 extern lv_color_t auto_color;
 extern lv_color_t cool_color;  

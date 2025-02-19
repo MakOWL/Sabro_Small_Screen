@@ -2,7 +2,9 @@
 #define CHARTS_H
 #include <lvgl.h>
 #include <cmath>
+#include "widget_dec.h"
 #include <esp_now.h>
+#include "com_structs.h"
 
 enum precison_enum{
   CHART_DATA_DECIMAL_POINT_PERCISION = 2,
@@ -26,6 +28,9 @@ typedef struct
   uint8_t chart_type;
 } chart_event_data_t;
 
+extern int peak_hour_cost;
+extern int off_peak_hour_cost;
+extern lv_obj_t *daily_chart;
 extern lv_chart_series_t *units_series;
 extern lv_chart_series_t *cost_series;
 extern lv_obj_t *power_monitor_hourly_data_chart;

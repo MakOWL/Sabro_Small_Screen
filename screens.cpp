@@ -4,7 +4,6 @@
 #include "images.h"
 #include "com_structs.h"
 #include "image_colours.h"
-//#include "esp_now_handler.h"
 
 // Global screen objects
 lv_obj_t *main_screen;
@@ -35,12 +34,12 @@ static lv_timer_t *reset_timer = NULL;   // Timer to reset the flag
 uint16_t current_fan_speed = SEND_AC_FAN_SPEED_CLEAR;
 //realTime_data data; 
 
-lv_color_t auto_color = lv_color_hex(0xb1ff08);
-lv_color_t cool_color = lv_color_hex(0x0000FF);  
-lv_color_t heat_color = lv_color_hex(0xb1ff08);  
-lv_color_t fan_color = lv_color_hex(0x40d7d7);
-lv_color_t dry_color = lv_color_hex(0xfc9e2b);
-lv_color_t default_color = lv_color_hex(0xFFFFFF);
+lv_color_t auto_color = lv_color_hex(FIXED_COLOR(0xb1ff08));
+lv_color_t cool_color = lv_color_hex(FIXED_COLOR(0x0000FF));  
+lv_color_t heat_color = lv_color_hex(FIXED_COLOR(0xf83535));  
+lv_color_t fan_color = lv_color_hex(FIXED_COLOR(0x40d7d7));
+lv_color_t dry_color = lv_color_hex(FIXED_COLOR(0xfc9e2b));
+lv_color_t default_color = lv_color_hex(FIXED_COLOR(0xFFFFFF));
 
   void action_image_pressed(lv_event_t *e)
   {
