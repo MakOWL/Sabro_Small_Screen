@@ -70,6 +70,43 @@ void left_right_btn_even(lv_event_t *e){
 
 }
 
+void swipe_event_handler(lv_event_t *e) {
+    lv_obj_t *obj = lv_event_get_target(e);  
+    lv_indev_t *indev = lv_event_get_indev(e);  // Get input device (touch)
+    lv_point_t swipe_dir;
+    lv_indev_get_vect(indev, &swipe_dir);  // Get swipe direction
+
+    static int current_panel = 0;
+
+    if (swipe_dir.x < -20) {  // Swipe left detected
+        current_panel++;
+        if (current_panel > 5) current_panel = 0;  // Wrap around
+    } 
+    else if (swipe_dir.x > 20) {  // Swipe right detected
+        current_panel--;
+        if (current_panel < 0) current_panel = 5;  // Wrap around
+    }
+
+    // Hide all panels first
+    lv_obj_add_flag(comp_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(power_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(temp_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(outdoor_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(defrost_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(refrig_data, LV_OBJ_FLAG_HIDDEN);
+
+    // Show the selected panel
+    switch (current_panel) {
+        case 0: lv_obj_clear_flag(comp_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 1: lv_obj_clear_flag(power_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 2: lv_obj_clear_flag(temp_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 3: lv_obj_clear_flag(outdoor_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 4: lv_obj_clear_flag(defrost_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 5: lv_obj_clear_flag(refrig_data, LV_OBJ_FLAG_HIDDEN); break;
+    }
+}
+
+
 void create_data_screen() {
     if (data_screen != NULL) {
         lv_scr_load(data_screen); // Load the existing screen
@@ -84,6 +121,7 @@ void create_data_screen() {
     lv_obj_set_size(menu_btn, 33, 24);
     //lv_obj_set_scroll_dir(data_screen, LV_DIR_VER);
     lv_obj_clear_flag(data_screen,LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_event_cb(data_screen, swipe_event_handler, LV_EVENT_GESTURE, NULL);
     lv_obj_scroll_to(data_screen, 0, 100, LV_ANIM_OFF);
 
     lv_obj_t *parent_obj = data_screen;

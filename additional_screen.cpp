@@ -38,7 +38,7 @@ void create_additional_modes_screen(){
       lv_obj_set_pos(room_temp_img, 0, 40);
       lv_obj_set_size(room_temp_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
       lv_img_set_src(room_temp_img, &img_room_temperature);
-      lv_img_set_zoom(room_temp_img, 200);
+      lv_img_set_zoom(room_temp_img, 250);
       lv_obj_set_style_align(room_temp_img, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
       {
           lv_obj_t *parent_obj = room_temp_img;
@@ -54,10 +54,10 @@ void create_additional_modes_screen(){
       }
 
             amb_temp_img = lv_img_create(mes_obj);
-            lv_obj_set_pos(amb_temp_img, 160, 40);
+            lv_obj_set_pos(amb_temp_img, 140, 40);
             lv_obj_set_size(amb_temp_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_img_set_src(amb_temp_img, &img_ambient_temperature);
-            lv_img_set_zoom(amb_temp_img, 200);
+            lv_img_set_zoom(amb_temp_img, 250);
             lv_obj_set_style_align(amb_temp_img, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = amb_temp_img;
@@ -126,7 +126,7 @@ void create_additional_modes_screen(){
     lv_obj_set_pos(eco_img, 0, 210);
     lv_obj_set_size(eco_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_img_set_src(eco_img, &img_eco);
-    lv_img_set_zoom(eco_img, 200);
+    lv_img_set_zoom(eco_img, 250);
     lv_obj_add_event_cb(eco_img,action_image_pressed,LV_EVENT_PRESSED,NULL);
     lv_obj_add_event_cb(eco_img,action_image_released,LV_EVENT_RELEASED,NULL);
     lv_obj_add_flag(eco_img, LV_OBJ_FLAG_CLICKABLE);
@@ -137,7 +137,7 @@ void create_additional_modes_screen(){
     lv_obj_set_pos(swing_img, 0, 260);
     lv_obj_set_size(swing_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_img_set_src(swing_img, &img_swing);
-    lv_img_set_zoom(swing_img, 200);
+    lv_img_set_zoom(swing_img, 250);
     lv_obj_add_event_cb(swing_img,action_image_pressed,LV_EVENT_PRESSED,NULL);
     lv_obj_add_event_cb(swing_img,action_image_released,LV_EVENT_RELEASED,NULL);
     lv_obj_add_flag(swing_img, LV_OBJ_FLAG_CLICKABLE);

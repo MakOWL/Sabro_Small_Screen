@@ -30,9 +30,12 @@ typedef struct
 
 extern int peak_hour_cost;
 extern int off_peak_hour_cost;
+extern lv_obj_t *hourly_chart;
 extern lv_obj_t *daily_chart;
 extern lv_chart_series_t *units_series;
 extern lv_chart_series_t *cost_series;
+extern lv_chart_series_t *hourly_chart_units_series;
+extern lv_chart_series_t *hourly_chart_cost_series;
 extern lv_obj_t *power_monitor_hourly_data_chart;
 extern lv_obj_t *power_monitor_daily_data_chart;
 extern lv_obj_t *power_monitor_monthly_data_chart;

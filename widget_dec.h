@@ -69,6 +69,7 @@ void create_main_screen();
 void create_data_screen();
 void create_timer_screen();
 void create_additional_modes_screen();
+void create_screen_power_monitor_hourly_screen();
 void create_screen_power_monitor_daily_screen(); 
 void create_setting_screen();
 

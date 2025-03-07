@@ -2,6 +2,7 @@
 #include "widget_dec.h"
 #include "image_colours.h"
 #include "rtosTasks.h" 
+#include "charts.h"
 
 
 realTime_data data;
@@ -124,6 +125,13 @@ void on_data_recv(const esp_now_recv_info_t *esp_now_info,const uint8_t *incomin
       Serial.println(paired_device_name);
       lv_label_set_text(paired_device_lbl, paired_device_name);
     } 
+    }
+    if (len == sizeof(float) * (1 + DAILY_ARRAY_SIZE)) {
+      if ((uint32_t) ((float *) incoming_data)[0] == ESPNOW_MESSAGE_TYPE_CHART_DAILY_OFF_PEAK_ARRAY) {
+        // Directly copy data without using a semaphore
+        memcpy(esp_now_daily_off_peak_units_array, incoming_data + sizeof(float),
+              sizeof(float) * DAILY_ARRAY_SIZE);
+      }
     }
      
 }

@@ -2,7 +2,6 @@
 #include "widget_dec.h"
 
 static lv_obj_t *menu;
-
 lv_obj_t *main_page;
 lv_obj_t *power_monitor_page;
 
@@ -54,8 +53,11 @@ void menu_power_monitor_event_handler(lv_event_t *e){
         create_screen_power_monitor_daily_screen();
         lv_scr_load(power_monitor_daily_screen);
         lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
-    } else if (strcmp(item_text, "Monthly") == 0) {
-        
+    } else if(strcmp(item_text,"Hourly") == 0){
+        create_screen_power_monitor_hourly_screen();
+        lv_scr_load(power_monitor_hourly_screen);
+        lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
+    } else if (strcmp(item_text, "Monthly") == 0) {    
         lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
     }
 }
@@ -65,6 +67,12 @@ void power_monitor_menu(void){
 
   lv_obj_t *cont = lv_menu_cont_create(power_monitor_page);
   lv_obj_t *label = lv_label_create(cont);
+  lv_label_set_text(label, "Hourly");
+  lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_add_event_cb(cont,  menu_power_monitor_event_handler, LV_EVENT_CLICKED, NULL);
+
+  cont = lv_menu_cont_create(power_monitor_page);
+  label = lv_label_create(cont);
   lv_label_set_text(label, "Daily");
   lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_add_event_cb(cont,  menu_power_monitor_event_handler, LV_EVENT_CLICKED, NULL);
@@ -84,21 +92,28 @@ void side_menu(void) {
 
     if (!menu) {
         // Create menu
-        menu = lv_menu_create(lv_scr_act());
+         menu = lv_menu_create(lv_scr_act());
         lv_menu_set_mode_root_back_btn(menu, LV_MENU_ROOT_BACK_BTN_ENABLED);
-        lv_obj_t *back_btn_label = lv_label_create(menu);
+        lv_obj_t *back_btn = lv_menu_get_main_header_back_btn(menu);
+        lv_obj_t *back_btn_label = lv_label_create(back_btn);
         lv_label_set_text(back_btn_label, "Back");
-        lv_obj_add_event_cb(menu, back_event_handler, LV_EVENT_CLICKED, menu);
+        lv_obj_add_event_cb(back_btn, back_event_handler, LV_EVENT_CLICKED, menu);
         lv_obj_set_size(menu, 200, 300);
         lv_obj_set_pos(menu, 0, 0);
 
-        // Create main page
         main_page = lv_menu_page_create(menu, NULL);
 
         // Add "Main Screen" option
         lv_obj_t *cont = lv_menu_cont_create(main_page);
         lv_obj_t *label = lv_label_create(cont);
         lv_label_set_text(label, "Main Screen");
+        lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
+
+        
+        cont = lv_menu_cont_create(main_page);
+        label = lv_label_create(cont);
+        lv_label_set_text(label, "Additional Modes Screen");
         lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
 
@@ -123,11 +138,6 @@ void side_menu(void) {
         lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
 
-        cont = lv_menu_cont_create(main_page);
-        label = lv_label_create(cont);
-        lv_label_set_text(label, "Additional Modes Screen");
-        lv_obj_add_flag(cont, LV_OBJ_FLAG_CLICKABLE);
-        lv_obj_add_event_cb(cont, menu_item_event_handler, LV_EVENT_CLICKED, NULL);
 
         cont = lv_menu_cont_create(main_page);
         label = lv_label_create(cont);

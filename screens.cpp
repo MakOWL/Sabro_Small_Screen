@@ -5,6 +5,10 @@
 #include "com_structs.h"
 #include "image_colours.h"
 
+#define DEMO_MODE 0
+#define REAL_MODE 1
+#define DEMO_OR_REAL_MODE REAL_MODE
+
 // Global screen objects
 lv_obj_t *main_screen;
 lv_obj_t *temp_label;
@@ -81,8 +85,9 @@ void action_image_released(lv_event_t *e){
         }
     }
 }
+#if DEMO_OR_REAL_MODE == DEMO_MODE
 
-void mode_image_event_handler(lv_event_t *e) {
+void action_send_data(lv_event_t *e) {
   lv_obj_t *img = lv_event_get_target(e);
   const void *src = lv_img_get_src(img);
 
@@ -113,7 +118,7 @@ void mode_image_event_handler(lv_event_t *e) {
       lv_label_set_text(mode_label, modes[mode_index]);
 }
 
-
+#elif DEMO_OR_REAL_MODE == REAL_MODE
 void action_send_data(lv_event_t *e){
   lv_event_code_t event_code = lv_event_get_code(e);
   lv_obj_t *calling_widget = lv_event_get_target(e);
@@ -161,6 +166,7 @@ void action_send_data(lv_event_t *e){
                    bitRead(data.ble_byte_1, 6));           
  }
 }
+#endif
 
 void action_temperature_increament_button(lv_event_t *e){
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -426,7 +432,7 @@ void create_main_screen() {
     lv_obj_t *inc_button = lv_btn_create(main_screen);
     lv_obj_set_pos(inc_button, 128, 236);
     lv_obj_set_size(inc_button, 40, 20);
-    //lv_obj_add_event_cb(inc_button, button_event_handler, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(inc_button, button_event_handler, LV_EVENT_CLICKED, NULL);
     lv_obj_t *inc_label = lv_label_create(inc_button);
     lv_label_set_text(inc_label, "+");
     lv_obj_add_event_cb(inc_button, action_temperature_increament_button,LV_EVENT_CLICKED, temp_label);
@@ -437,7 +443,7 @@ void create_main_screen() {
     lv_obj_t *dec_button = lv_btn_create(main_screen);
     lv_obj_set_pos(dec_button, 62, 236);
     lv_obj_set_size(dec_button, 40, 20);
-    //lv_obj_add_event_cb(dec_button, button_event_handler, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(dec_button, button_event_handler, LV_EVENT_CLICKED, NULL);
     lv_obj_t *dec_label = lv_label_create(dec_button);
     lv_label_set_text(dec_label, "-");
     lv_obj_add_event_cb(dec_button, action_temperature_decrement_button, LV_EVENT_CLICKED, temp_label);

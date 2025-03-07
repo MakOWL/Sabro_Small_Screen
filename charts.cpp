@@ -16,14 +16,19 @@ lv_coord_t power_monitor_monthly_units_array[MONTHLY_ARRAY_SIZE + 2];
 
 lv_chart_series_t *units_series;
 lv_chart_series_t *cost_series;
+lv_chart_series_t *hourly_chart_units_series;
+lv_chart_series_t *hourly_chart_cost_series;
 
 float esp_now_daily_off_peak_units_array[DAILY_ARRAY_SIZE];
 float esp_now_daily_peak_units_array[DAILY_ARRAY_SIZE];
 
+lv_obj_t *power_monitor_hourly_screen;
 lv_obj_t *power_monitor_daily_screen;
+
 lv_coord_t daily_unit_array[31] = {0};
 lv_coord_t daily_cost_array[31] = {0};
 lv_obj_t *daily_chart;
+lv_obj_t *hourly_chart;
 int peak_hour_cost = 60;
 int off_peak_hour_cost = 55;
 
@@ -156,7 +161,10 @@ void chart_action(lv_event_t *e) {
     }
   }
 }
-
+void update_hourly_chart() {
+  // update hourly chart
+  
+}
 
 void update_daily_chart() {
   Serial.println("Updated daily chart, the function called atleast");
@@ -230,8 +238,8 @@ void update_daily_chart() {
   }
 
   // ** Adjust for Better Visualization **
-  maximum_unit += ceil(maximum_unit * 0.10);
-  maximum_cost += ceil(maximum_cost * 0.10);
+  maximum_unit += ceil(maximum_unit * 0.50);
+  maximum_cost += ceil(maximum_cost * 0.50);
 
   power_monitor_daily_units_array[DAILY_ARRAY_SIZE] = minimum_unit;
   power_monitor_daily_cost_array[DAILY_ARRAY_SIZE] = minimum_cost;
@@ -265,4 +273,5 @@ lv_chart_set_range(daily_chart, LV_CHART_AXIS_SECONDARY_Y,
     lv_chart_refresh(daily_chart);
   }
 }
+
 

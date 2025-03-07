@@ -3,8 +3,6 @@
 #include <cmath>
 #include "images.h"
 
-
-
 void create_screen_power_monitor_daily_screen() {
      if (power_monitor_daily_screen != NULL) {
         lv_scr_load(power_monitor_daily_screen); // Load the existing screen
@@ -37,7 +35,6 @@ void create_screen_power_monitor_daily_screen() {
           daily_chart = lv_chart_create(parent_obj);
           lv_obj_set_pos(daily_chart, 0, 10);
           lv_obj_set_size(daily_chart, 200, 250);
-          //lv_obj_align(daily_chart, LV_ALIGN_CENTER, 10, 0); 
           lv_obj_set_style_align(daily_chart, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
           lv_chart_set_type(daily_chart, LV_CHART_TYPE_BAR); // Change to BAR
           lv_obj_set_style_width(daily_chart, 10, LV_PART_ITEMS);
