@@ -300,8 +300,9 @@ void create_main_screen() {
     lv_obj_set_pos(main_screen, 0, 0);
     lv_obj_set_size(main_screen, 240, 320);
     lv_obj_set_scroll_dir(main_screen, LV_DIR_VER);
+
     lv_obj_t *container = lv_obj_create(main_screen);
-    lv_obj_set_pos(container, 8, 30);
+    lv_obj_set_pos(container, 8, 40);
     lv_obj_set_size(container, 280, 70);
     lv_obj_set_style_pad_left(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_top(container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -413,49 +414,64 @@ void create_main_screen() {
     lv_obj_add_event_cb(menu_btn, menu_button_event_handler, LV_EVENT_CLICKED, NULL);
 
     // Temperature dial
-    temp_dial = lv_arc_create(main_screen);
-    lv_obj_set_pos(temp_dial, 45, 100);
-    lv_obj_set_size(temp_dial, 150, 170);
-    lv_arc_set_range(temp_dial, 16, 30);
-    lv_arc_set_value(temp_dial, 25);
-    lv_arc_set_bg_end_angle(temp_dial, 45);
-    lv_arc_set_mode(temp_dial, LV_ARC_MODE_NORMAL);
+    // Create a container
+    lv_obj_t *temp_container = lv_obj_create(main_screen);
+    lv_obj_set_size(temp_container, 240, 200); // Set appropriate size
+    lv_obj_set_pos(temp_container, 20, 75);  // Set initial position
+    lv_obj_set_style_pad_left(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_align(temp_container, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_transform_width(temp_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    temp_label = lv_label_create(main_screen);
-    lv_obj_set_pos(temp_label, 90, 140);
-    lv_label_set_text(temp_label, "25");
-    lv_obj_set_style_text_font(temp_label, &lv_font_montserrat_46, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_add_event_cb(temp_dial, temp_handler, LV_EVENT_VALUE_CHANGED, temp_label);
-    
+// Create the temperature dial inside the container
+temp_dial = lv_arc_create(temp_container);
+lv_obj_set_pos(temp_dial, 25, 20); 
+lv_obj_set_size(temp_dial, 150, 170);
+lv_arc_set_range(temp_dial, 16, 30);
+lv_arc_set_value(temp_dial, 25);
+lv_arc_set_bg_end_angle(temp_dial, 45);
+lv_arc_set_mode(temp_dial, LV_ARC_MODE_NORMAL);
 
-    // "+" Button
-    lv_obj_t *inc_button = lv_btn_create(main_screen);
-    lv_obj_set_pos(inc_button, 128, 236);
-    lv_obj_set_size(inc_button, 40, 20);
-    lv_obj_add_event_cb(inc_button, button_event_handler, LV_EVENT_CLICKED, NULL);
-    lv_obj_t *inc_label = lv_label_create(inc_button);
-    lv_label_set_text(inc_label, "+");
-    lv_obj_add_event_cb(inc_button, action_temperature_increament_button,LV_EVENT_CLICKED, temp_label);
-    lv_obj_set_style_align(inc_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(inc_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+// Create the temperature label inside the container
+temp_label = lv_label_create(temp_container);
+lv_obj_set_pos(temp_label, 70, 60);
+lv_label_set_text(temp_label, "25");
+lv_obj_set_style_text_font(temp_label, &lv_font_montserrat_46, LV_PART_MAIN | LV_STATE_DEFAULT);
+lv_obj_add_event_cb(temp_dial, temp_handler, LV_EVENT_VALUE_CHANGED, temp_label);
 
-    // "-" Button
-    lv_obj_t *dec_button = lv_btn_create(main_screen);
-    lv_obj_set_pos(dec_button, 62, 236);
-    lv_obj_set_size(dec_button, 40, 20);
-    lv_obj_add_event_cb(dec_button, button_event_handler, LV_EVENT_CLICKED, NULL);
-    lv_obj_t *dec_label = lv_label_create(dec_button);
-    lv_label_set_text(dec_label, "-");
-    lv_obj_add_event_cb(dec_button, action_temperature_decrement_button, LV_EVENT_CLICKED, temp_label);
-    lv_obj_set_style_align(dec_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(dec_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+// "+" Button inside the container
+lv_obj_t *inc_button = lv_btn_create(temp_container);
+lv_obj_set_pos(inc_button, 115, 160);
+lv_obj_set_size(inc_button, 40, 20);
+lv_obj_add_event_cb(inc_button, button_event_handler, LV_EVENT_CLICKED, NULL);
+lv_obj_t *inc_label = lv_label_create(inc_button);
+lv_label_set_text(inc_label, "+");
+lv_obj_add_event_cb(inc_button, action_temperature_increament_button, LV_EVENT_CLICKED, temp_label);
+lv_obj_set_style_align(inc_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(inc_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    // Mode label
-    mode_label = lv_label_create(main_screen);
-    lv_obj_set_pos(mode_label, 90, 190);
-    lv_label_set_text(mode_label, modes[1]);
-    lv_obj_set_style_text_font(mode_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
-    //lv_obj_add_flag(mode_label, LV_OBJ_FLAG_CLICKABLE);
+// "-" Button inside the container
+lv_obj_t *dec_button = lv_btn_create(temp_container);
+lv_obj_set_pos(dec_button, 45, 160);
+lv_obj_set_size(dec_button, 40, 20);
+lv_obj_add_event_cb(dec_button, button_event_handler, LV_EVENT_CLICKED, NULL);
+lv_obj_t *dec_label = lv_label_create(dec_button);
+lv_label_set_text(dec_label, "-");
+lv_obj_add_event_cb(dec_button, action_temperature_decrement_button, LV_EVENT_CLICKED, temp_label);
+lv_obj_set_style_align(dec_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(dec_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+// Mode label inside the container
+mode_label = lv_label_create(temp_container);
+lv_obj_set_pos(mode_label, 70, 110);
+lv_label_set_text(mode_label, modes[1]);
+lv_obj_set_style_text_font(mode_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+
 
     //Power button
     power_img = lv_img_create(main_screen);

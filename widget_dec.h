@@ -29,6 +29,8 @@ extern lv_obj_t *refrig_data;
 
 extern lv_obj_t *left_btn;
 extern lv_obj_t *right_btn;
+extern lv_obj_t *left_btn_setting;
+extern lv_obj_t *right_btn_setting;
 
 //main screen mode images
 extern lv_obj_t *img_auto_obj;

@@ -7,6 +7,9 @@
 #include "eprom_utils.h"
 
 lv_obj_t *setting_screen;
+lv_obj_t *settings_screen_pairing_cont;
+lv_obj_t *settings_screen_date_time_cont;
+
 lv_obj_t *avail_devices_screen;
 lv_obj_t *device_list;
 lv_obj_t *device_list_buttons[MAXIMUM_AVAILABLE_DEVICES_COUNT];
@@ -14,6 +17,9 @@ lv_obj_t *paired_device_lbl;
 lv_obj_t *pair_new_device_btn;
 lv_obj_t *unpair_btn;
 uint16_t unpairing_request_send_time;
+
+lv_obj_t *left_btn_setting;
+lv_obj_t *right_btn_setting;
 
 void force_unpair_close(lv_event_t *e) {
   if (lv_event_get_code(e) == LV_EVENT_CLICKED)
@@ -156,8 +162,8 @@ void create_setting_screen() {
     lv_obj_set_pos(menu_btn, 4, 6);
     lv_obj_set_size(menu_btn, 33, 24);
     //lv_obj_set_scroll_dir(data_screen, LV_DIR_VER);
-    lv_obj_clear_flag(data_screen,LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_scroll_to(data_screen, 0, 100, LV_ANIM_OFF);
+    lv_obj_clear_flag(setting_screen,LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_scroll_to(setting_screen, 0, 100, LV_ANIM_OFF);
     lv_obj_t *menu_label = lv_label_create(menu_btn);
     lv_label_set_text(menu_label, "");
     lv_obj_set_style_align(menu_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -168,19 +174,21 @@ void create_setting_screen() {
         lv_obj_t *parent_obj = setting_screen;
         {
             // settings_screen_pair_device_container
-            lv_obj_t *settings_screen_main_cont = lv_obj_create(parent_obj);
-            lv_obj_set_pos(settings_screen_main_cont, 40, 50);
-            lv_obj_set_size(settings_screen_main_cont, LV_PCT(70), 257);
-            lv_obj_set_style_pad_left(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_top(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_right(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_pad_bottom(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_border_width(settings_screen_main_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(settings_screen_main_cont, lv_color_hex(0xff66708d), LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_opa(settings_screen_main_cont, 64, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_radius(settings_screen_main_cont, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+            settings_screen_pairing_cont = lv_obj_create(parent_obj);
+            lv_obj_set_pos(settings_screen_pairing_cont, 40, 50);
+            lv_obj_set_size(settings_screen_pairing_cont, LV_PCT(70), 220);
+            lv_obj_set_style_pad_left(settings_screen_pairing_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(settings_screen_pairing_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(settings_screen_pairing_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(settings_screen_pairing_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(settings_screen_pairing_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(settings_screen_pairing_cont, lv_color_hex(0xff66708d), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(settings_screen_pairing_cont, 64, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(settings_screen_pairing_cont, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+            //lv_obj_set_style_align(settings_screen_pairing_cont, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            //lv_obj_add_flag(settings_screen_pairing_cont,LV_OBJ_FLAG_HIDDEN);
             {
-                lv_obj_t *parent_obj = settings_screen_main_cont;
+                lv_obj_t *parent_obj = settings_screen_pairing_cont;
                 {
                     // settings_screen_pair_device_current_pair_container
                     lv_obj_t *obj = lv_obj_create(parent_obj);
@@ -294,9 +302,9 @@ void create_setting_screen() {
         }
         {
             // main_screen_pair_device_available_devices_container
-            avail_devices_screen = lv_obj_create(parent_obj);
+            avail_devices_screen = lv_obj_create(setting_screen);
             lv_obj_set_pos(avail_devices_screen, 0, 0);
-            lv_obj_set_size(avail_devices_screen, LV_PCT(70), LV_PCT(70));
+            lv_obj_set_size(avail_devices_screen, LV_PCT(90), LV_PCT(80));
             lv_obj_set_style_pad_left(avail_devices_screen, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_top(avail_devices_screen, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_pad_right(avail_devices_screen, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -343,7 +351,7 @@ void create_setting_screen() {
                     // settings_screen_pair_device_list
                     device_list = lv_list_create(parent_obj);
                     lv_obj_set_pos(device_list, 0, 0);
-                    lv_obj_set_size(device_list, LV_PCT(70), LV_PCT(65));
+                    lv_obj_set_size(device_list, LV_PCT(90), LV_PCT(65));
                     lv_obj_set_style_align(device_list, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                     for (int i = 0; i < MAXIMUM_AVAILABLE_DEVICES_COUNT; i++) {
                       
@@ -355,8 +363,54 @@ void create_setting_screen() {
     }
                 }
             }
-        }
-
-//update_setting_screen();
+             //lv_obj_t *parent_obj = setting_screen;
+        {
+            // settings_screen_pair_device_container
+            settings_screen_date_time_cont = lv_obj_create(parent_obj);
+            lv_obj_set_pos(settings_screen_date_time_cont, 40, 50);
+            lv_obj_set_size(settings_screen_date_time_cont, LV_PCT(70), 257);
+            lv_obj_set_style_pad_left(settings_screen_date_time_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(settings_screen_date_time_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(settings_screen_date_time_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(settings_screen_date_time_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(settings_screen_date_time_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(settings_screen_date_time_cont, lv_color_hex(0xff66708d), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(settings_screen_date_time_cont, 64, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(settings_screen_date_time_cont, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_add_flag(settings_screen_date_time_cont,LV_OBJ_FLAG_HIDDEN);
+        } 
+          
+       }
+       left_btn_setting = lv_btn_create(setting_screen);
+          //objects.left_btn = obj;
+          lv_obj_set_pos(left_btn_setting, 40, 275);
+          lv_obj_set_size(left_btn_setting, 40, 30);
+          //lv_obj_add_event_cb(left_btn, left_right_btn_even, LV_EVENT_CLICKED, NULL);
+          {
+              lv_obj_t *parent_obj = left_btn_setting;
+              {
+                  lv_obj_t *obj = lv_label_create(parent_obj);
+                  lv_obj_set_pos(obj, 0, 0);
+                  lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                  lv_label_set_text(obj, "");
+                  lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+              }
+          }
+            right_btn_setting = lv_btn_create(setting_screen);
+            lv_obj_set_pos(right_btn_setting, 170, 275);
+            lv_obj_set_size(right_btn_setting, 40, 30);
+            //lv_obj_add_event_cb(right_btn, left_right_btn_even, LV_EVENT_CLICKED, NULL);
+            {
+                lv_obj_t *parent_obj = right_btn_setting;
+                {
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_label_set_text(obj, "");
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                }
+            }
+          
     }
+
     
