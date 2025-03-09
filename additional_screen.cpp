@@ -34,11 +34,11 @@ void create_additional_modes_screen(){
       lv_obj_add_event_cb(menu_btn, menu_button_event_handler, LV_EVENT_CLICKED, NULL);
 
      // main_screen_room_temperature_image_1
-      lv_obj_t *room_temp_img = lv_img_create(mes_obj);
+      room_temp_img = lv_img_create(mes_obj);
       lv_obj_set_pos(room_temp_img, 0, 40);
       lv_obj_set_size(room_temp_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
       lv_img_set_src(room_temp_img, &img_room_temperature);
-      lv_img_set_zoom(room_temp_img, 160);
+      lv_img_set_zoom(room_temp_img, 250);
       lv_obj_set_style_align(room_temp_img, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
       {
           lv_obj_t *parent_obj = room_temp_img;
@@ -53,11 +53,11 @@ void create_additional_modes_screen(){
           }
       }
 
-      lv_obj_t *amb_temp_img = lv_img_create(mes_obj);
-            lv_obj_set_pos(amb_temp_img, 160, 40);
+            amb_temp_img = lv_img_create(mes_obj);
+            lv_obj_set_pos(amb_temp_img, 140, 40);
             lv_obj_set_size(amb_temp_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_img_set_src(amb_temp_img, &img_ambient_temperature);
-            lv_img_set_zoom(amb_temp_img, 160);
+            lv_img_set_zoom(amb_temp_img, 250);
             lv_obj_set_style_align(amb_temp_img, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = amb_temp_img;
@@ -73,8 +73,7 @@ void create_additional_modes_screen(){
             }
     
     // main screen fan speed controller
-     lv_obj_t *fan_speed_cont = lv_obj_create(mes_obj);
-      //objects.main_screen_fan_speed_container_1 = obj;
+      fan_speed_cont = lv_obj_create(mes_obj);
       lv_obj_set_pos(fan_speed_cont, 0, 130);
       lv_obj_set_size(fan_speed_cont, LV_SIZE_CONTENT, 81);
       lv_obj_set_style_pad_left(fan_speed_cont, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -92,8 +91,12 @@ void create_additional_modes_screen(){
             lv_obj_set_pos(obj, 0, 0);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_img_set_src(obj, &img_fan_speed);
-            lv_img_set_zoom(obj, 160);
+            lv_img_set_zoom(obj, 200);
             lv_img_set_angle(obj, 2);
+            lv_obj_add_event_cb(obj,action_image_pressed,LV_EVENT_PRESSED,NULL);
+            lv_obj_add_event_cb(obj,action_image_released,LV_EVENT_RELEASED,NULL);
+            lv_obj_add_event_cb(obj,action_send_data,LV_EVENT_CLICKED,NULL);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_set_style_transform_angle(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_align(obj, LV_ALIGN_TOP_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
@@ -119,20 +122,25 @@ void create_additional_modes_screen(){
             lv_obj_set_style_line_width(obj, 3, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
     }
-    lv_obj_t *eco_img = lv_img_create(mes_obj);
+    eco_img = lv_img_create(mes_obj);
     lv_obj_set_pos(eco_img, 0, 210);
     lv_obj_set_size(eco_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_img_set_src(eco_img, &img_eco);
-    lv_img_set_zoom(eco_img, 200);
+    lv_img_set_zoom(eco_img, 250);
+    lv_obj_add_event_cb(eco_img,action_image_pressed,LV_EVENT_PRESSED,NULL);
+    lv_obj_add_event_cb(eco_img,action_image_released,LV_EVENT_RELEASED,NULL);
     lv_obj_add_flag(eco_img, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_align(eco_img, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
 
      // main_menu_swing_status_1
-    lv_obj_t *swing_img = lv_img_create(mes_obj);
+    swing_img = lv_img_create(mes_obj);
     lv_obj_set_pos(swing_img, 0, 260);
     lv_obj_set_size(swing_img, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_img_set_src(swing_img, &img_swing);
-    lv_img_set_zoom(swing_img, 200);
+    lv_img_set_zoom(swing_img, 250);
+    lv_obj_add_event_cb(swing_img,action_image_pressed,LV_EVENT_PRESSED,NULL);
+    lv_obj_add_event_cb(swing_img,action_image_released,LV_EVENT_RELEASED,NULL);
+    lv_obj_add_flag(swing_img, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_img_recolor_opa(swing_img, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_img_recolor(swing_img, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
     

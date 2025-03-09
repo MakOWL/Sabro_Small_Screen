@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include "images.h"
 #include "fonts.h"
+#include "com_structs.h"
+
+lv_obj_t *tab_view;
 
 lv_obj_t *data_screen;
 lv_obj_t *comp_data;
@@ -12,26 +15,24 @@ lv_obj_t *outdoor_data;
 lv_obj_t *defrost_data;
 lv_obj_t *refrig_data;
 
+lv_obj_t *comp_data_label;
+
 lv_obj_t *left_btn;
 lv_obj_t *right_btn;
 
 int current_panel_index = 0;
 
-
-
 void left_right_btn_even(lv_event_t *e){
-   lv_obj_t *btn = lv_event_get_target(e);  // Get the button that was clicked
-    static int current_panel = 0;  // Track the currently visible panel
+   lv_obj_t *btn = lv_event_get_target(e);
+    static int current_panel = 0;  
 
     if (btn == left_btn) {
-        // Move to the previous panel (decrease index)
         current_panel--;
-        if (current_panel < 0) current_panel = 5;  // Wrap around if we go below 0
+        if (current_panel < 0) current_panel = 5;
     }
     else if (btn == right_btn) {
-        // Move to the next panel (increase index)
         current_panel++;
-        if (current_panel > 5) current_panel = 0;  // Wrap around if we go above 5
+        if (current_panel > 5) current_panel = 0;
     }
 
     // Hide all panels first
@@ -67,6 +68,43 @@ void left_right_btn_even(lv_event_t *e){
 
 }
 
+void swipe_event_handler(lv_event_t *e) {
+    lv_obj_t *obj = lv_event_get_target(e);  
+    lv_indev_t *indev = lv_event_get_indev(e);  // Get input device (touch)
+    lv_point_t swipe_dir;
+    lv_indev_get_vect(indev, &swipe_dir);  // Get swipe direction
+
+    static int current_panel = 0;
+
+    if (swipe_dir.x < -20) {  // Swipe left detected
+        current_panel++;
+        if (current_panel > 5) current_panel = 0;  // Wrap around
+    } 
+    else if (swipe_dir.x > 20) {  // Swipe right detected
+        current_panel--;
+        if (current_panel < 0) current_panel = 5;  // Wrap around
+    }
+
+    // Hide all panels first
+    lv_obj_add_flag(comp_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(power_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(temp_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(outdoor_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(defrost_data, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(refrig_data, LV_OBJ_FLAG_HIDDEN);
+
+    // Show the selected panel
+    switch (current_panel) {
+        case 0: lv_obj_clear_flag(comp_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 1: lv_obj_clear_flag(power_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 2: lv_obj_clear_flag(temp_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 3: lv_obj_clear_flag(outdoor_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 4: lv_obj_clear_flag(defrost_data, LV_OBJ_FLAG_HIDDEN); break;
+        case 5: lv_obj_clear_flag(refrig_data, LV_OBJ_FLAG_HIDDEN); break;
+    }
+}
+
+
 void create_data_screen() {
     if (data_screen != NULL) {
         lv_scr_load(data_screen); // Load the existing screen
@@ -81,6 +119,7 @@ void create_data_screen() {
     lv_obj_set_size(menu_btn, 33, 24);
     //lv_obj_set_scroll_dir(data_screen, LV_DIR_VER);
     lv_obj_clear_flag(data_screen,LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_event_cb(data_screen, swipe_event_handler, LV_EVENT_GESTURE, NULL);
     lv_obj_scroll_to(data_screen, 0, 100, LV_ANIM_OFF);
 
     lv_obj_t *parent_obj = data_screen;
@@ -90,7 +129,7 @@ void create_data_screen() {
     lv_obj_set_style_align(menu_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(menu_label, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(menu_btn, menu_button_event_handler, LV_EVENT_CLICKED, NULL);
-    
+    lv_obj_move_foreground(menu_btn);
 
     // Additional elements for the data screen can be added here.
           comp_data = lv_img_create(parent_obj);
@@ -126,15 +165,15 @@ void create_data_screen() {
                 }
                 {
                     // data_compressor_rpm
-                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    comp_data_label = lv_label_create(parent_obj);
                     //objects.data_compressor_rpm = obj;
-                    lv_obj_set_pos(obj, 0, 0);
-                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                    lv_label_set_text(obj, "4500");
-                    lv_obj_set_style_text_color(obj, lv_color_hex(0xfffafafa), LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_font(obj, &ui_font_seven_segment_48, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_text_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_pos(comp_data_label, 0, 0);
+                    lv_obj_set_size(comp_data_label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_label_set_text(comp_data_label, "4500");
+                    lv_obj_set_style_text_color(comp_data_label, lv_color_hex(0xfffafafa), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(comp_data_label, &ui_font_seven_segment_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_opa(comp_data_label, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_align(comp_data_label, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
                     // data_compressor_running_mode
@@ -151,7 +190,6 @@ void create_data_screen() {
         {
             // power_data
             power_data = lv_img_create(parent_obj);
-            //objects.power_data = obj;
             lv_obj_set_pos(power_data, -45, -5);
             lv_obj_set_size(power_data, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_img_set_src(power_data, &img_data_panal1);
@@ -160,9 +198,8 @@ void create_data_screen() {
             {
                 lv_obj_t *parent_obj = power_data;
                 {
-                    // data_power_direct_voltage
-                    lv_obj_t *obj = lv_label_create(parent_obj);
-                  //  objects.data_power_direct_voltage = obj;
+                    // data_power_direct_voltage index = 0
+                    lv_obj_t *obj = lv_label_create(parent_obj);     
                     lv_obj_set_pos(obj, 0, 10);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "DCV: 380");
@@ -170,9 +207,8 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_power_alternating_current
+                    // data_power_alternating_current index = 1
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                  //  objects.data_power_alternating_current = obj;
                     lv_obj_set_pos(obj, 0, -15);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "Amp: 8.9");
@@ -180,9 +216,8 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_power_alternating_voltage
+                    // data_power_alternating_voltage index = 2
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                 //   objects.data_power_alternating_voltage = obj;
                     lv_obj_set_pos(obj, 0, -40);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "Volt: 230.6");
@@ -190,9 +225,8 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_power_label
+                    // data_power_label  index = 3
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                   // objects.data_power_label = obj;
                     lv_obj_set_pos(obj, 0, -90);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "Power");
@@ -200,9 +234,8 @@ void create_data_screen() {
                     lv_obj_set_style_text_font(obj, &ui_font_hemi_head_18, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_power_direct_current
+                    // data_power_direct_current index = 4 
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                  //  objects.data_power_direct_current = obj;
                     lv_obj_set_pos(obj, 0, 35);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "DCA: 5.5");
@@ -223,7 +256,7 @@ void create_data_screen() {
             {
                 lv_obj_t *parent_obj = temp_data;
                 {
-                    // data_temperature_label_1
+                    // data_temperature_label_1 index = 0
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_temperature_label_1 = obj;
                     lv_obj_set_pos(obj, 2, -95);
@@ -234,7 +267,7 @@ void create_data_screen() {
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xff161515), LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_temperature_room_temp_label_1
+                    // data_temperature_room_temp_label_1 index = 1
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_temperature_room_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -25);
@@ -244,7 +277,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_temperature_set_temp_label_1
+                    // data_temperature_set_temp_label_1 index = 2
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_temperature_set_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -50);
@@ -254,7 +287,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_temperature_coil_temp_label_1
+                    // data_temperature_coil_temp_label_1 index = 3
                     lv_obj_t *obj = lv_label_create(parent_obj);
                   //  objects.data_temperature_coil_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 0);
@@ -264,7 +297,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_temperature_delta_temperature_label_1
+                    // data_temperature_delta_temperature_label_1 index = 4
                     lv_obj_t *obj = lv_label_create(parent_obj);
                   //  objects.data_temperature_delta_temperature_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 25);
@@ -274,7 +307,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_temperature_delta_achieved_label_1
+                    // data_temperature_delta_achieved_label_1 index = 
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_temperature_delta_achieved_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 50);
@@ -297,9 +330,8 @@ void create_data_screen() {
             {
                 lv_obj_t *parent_obj = outdoor_data;
                 {
-                    // data_outdoor_error_label_1
+                    // data_outdoor_error_label_1 index = 0
                     lv_obj_t *obj = lv_label_create(parent_obj);
-                   // objects.data_outdoor_error_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 50);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_label_set_text(obj, "Error: No");
@@ -307,7 +339,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_outdoor_delay_label_1
+                    // data_outdoor_delay_label_1 index = 1
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_outdoor_delay_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 25);
@@ -317,7 +349,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_outdoor_motor_label_1
+                    // data_outdoor_motor_label_1 index = 2 
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_outdoor_motor_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -50);
@@ -327,7 +359,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_outdoor_motor_running_status_label_1
+                    // data_outdoor_motor_running_status_label_1 index = 3
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_outdoor_motor_running_status_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -25);
@@ -337,7 +369,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_outdoor_label_1
+                    // data_outdoor_label_1 index = 4
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_outdoor_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -90);
@@ -348,7 +380,7 @@ void create_data_screen() {
                     lv_obj_set_style_text_color(obj, lv_color_hex(0xff252222), LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_outdoor_inv_label_1
+                    // data_outdoor_inv_label_1 index = 5
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_outdoor_inv_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 0);
@@ -371,7 +403,7 @@ void create_data_screen() {
             {
                 lv_obj_t *parent_obj = defrost_data;
                 {
-                    // data_defrost_cycle_label_1
+                    // data_defrost_cycle_label_1  index = 0
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_defrost_cycle_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -40);
@@ -381,7 +413,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_defrost_mode_label_1
+                    // data_defrost_mode_label_1 index = 1
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_defrost_mode_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -15);
@@ -391,7 +423,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_defrost_check_label_1
+                    // data_defrost_check_label_1 index = 2
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_defrost_check_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 10);
@@ -401,7 +433,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_defrost_rv_label_1
+                    // data_defrost_rv_label_1 index = 3
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_defrost_rv_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 35);
@@ -411,7 +443,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_defrost_label_1
+                    // data_defrost_label_1 index = 4
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_defrost_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -90);
@@ -434,7 +466,7 @@ void create_data_screen() {
             {
                 lv_obj_t *parent_obj = refrig_data;
                 {
-                    // data_refrigeration_suction_pressure_temp_label_1
+                    // data_refrigeration_suction_pressure_temp_label_1 index = 0
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_refrigeration_suction_pressure_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 25);
@@ -444,7 +476,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_refrigeration_discharge_pressure_temp_label_1
+                    // data_refrigeration_discharge_pressure_temp_label_1 index = 1
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_refrigeration_discharge_pressure_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 45);
@@ -454,7 +486,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_refrigeration_suction_line_temp_label_1
+                    // data_refrigeration_suction_line_temp_label_1 index = 2
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_refrigeration_suction_line_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -15);
@@ -464,7 +496,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_refrigeration_discharge_line_temp_label_1
+                    // data_refrigeration_discharge_line_temp_label_1 index = 3
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_refrigeration_discharge_line_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, 5);
@@ -474,7 +506,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_refrigeration_ambient_temp_label_1
+                    // data_refrigeration_ambient_temp_label_1 index = 4
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_refrigeration_ambient_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -55);
@@ -484,7 +516,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_refrigeration_liquid_line_temp_label_1
+                    // data_refrigeration_liquid_line_temp_label_1 index = 5
                     lv_obj_t *obj = lv_label_create(parent_obj);
                     //objects.data_refrigeration_liquid_line_temp_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -35);
@@ -494,7 +526,7 @@ void create_data_screen() {
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
                 }
                 {
-                    // data_refrigeration_label_1
+                    // data_refrigeration_label_1 index = 6
                     lv_obj_t *obj = lv_label_create(parent_obj);
                    // objects.data_refrigeration_label_1 = obj;
                     lv_obj_set_pos(obj, 0, -90);
@@ -542,6 +574,7 @@ void create_data_screen() {
                 }
             }
         }
+    //update_data_screen(data);
 }
 
 

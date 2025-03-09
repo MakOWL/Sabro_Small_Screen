@@ -1,6 +1,10 @@
 #include "Panelz.h"
 #include "widget_dec.h"
 #include "lvgl.h"
+#include "com_structs.h"
+#include "eprom_utils.h"
+#include "watch_dog.h"
+#include <esp_task_wdt.h>
 
 Panelz tft(BOARD_SC05_PLUS);
 
@@ -48,46 +52,12 @@ void my_touchpad_read( lv_indev_drv_t * indev_driver, lv_indev_data_t * data )
 
 #include "lvgl.h"
 
-/*void swap_red_blue_screen(void) {
-     Get the display buffer 
-    lv_disp_t *disp = lv_disp_get_default();
-    lv_draw_buf_t *draw_buf = lv_disp_get_draw_buf(disp);
-    lv_color_t *buffer = draw_buf->buf1;  // Use buffer1 or buffer2 depending on your setup
-
-    /* Get the width and height of the screen 
-    uint32_t screen_width = lv_disp_get_hor_res(disp);
-    uint32_t screen_height = lv_disp_get_ver_res(disp);
-
-    lv_color_t pixel;
-    uint8_t r, g, b;
-    lv_color_t swapped_pixel;
-
-    /* Iterate over each pixel of the screen 
-    for (uint32_t y = 0; y < screen_height; y++) {
-        for (uint32_t x = 0; x < screen_width; x++) {
-            pixel = buffer[y * screen_width + x];
-
-            /* Extract RGB components from the pixel 
-            r = lv_color_get_red(pixel);
-            g = lv_color_get_green(pixel);
-            b = lv_color_get_blue(pixel);
-
-            /* Swap red and blue 
-            swapped_pixel = lv_color_make(b, g, r);
-
-            /* Update the pixel with the swapped color 
-            buffer[y * screen_width + x] = swapped_pixel;
-        }
-    }
-
-    /* Force a refresh to update the display 
-    lv_disp_flush_ready(disp);
-}*/
-
 
 void setup()
 {
-    tft.begin();
+  Serial.begin(115200);
+  tft.begin();
+  
 
     lv_init();
     lv_disp_draw_buf_init( &draw_buf, buf[0], buf[1], screenWidth * 10 );
@@ -111,16 +81,27 @@ void setup()
     indev_drv.read_cb = my_touchpad_read;
     lv_indev_drv_register( &indev_drv );
     tft.fillScreen(TFT_PURPLE);
-    //swap_red_blue_screen();
-
-    //lvgl_ui();
+    watchdog_init();
+    eeprom_init();
+    esp_now_setup();
+    
+    if(is_paired){
+    Serial.printf("Name from Mac Address %x:%x:%x:%x:%x:%x/n",paired_mac[0],paired_mac[1],paired_mac[2],paired_mac[3],paired_mac[4],paired_mac[5]);
+    uint8_t send_request = ESPNOW_MESSAGE_TYPE_REQUEST_MASTER_DEVICE_NAME;
+    esp_now_send(paired_mac, (uint8_t *)&send_request, sizeof(send_request));
+    }else{
+      Serial.print("Not is paired");
+    }
+    eeprom_reset();
     create_main_screen();
+    create_additional_modes_screen();
+    create_data_screen();
 }
 
 
 void loop()
 {
-  Serial.begin(115200);
   lv_timer_handler(); /* let the GUI do its work */
   delay(20);
+  esp_task_wdt_reset();
 }
